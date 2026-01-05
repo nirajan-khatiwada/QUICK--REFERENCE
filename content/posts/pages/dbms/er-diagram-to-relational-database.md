@@ -4,7 +4,7 @@ slug: "er-diagram-to-relational-database"
 date: 2025-01-25
 description: "Step-by-step guide to converting ER Diagrams to Relational Tables. Handle 1:1, 1:N, and N:M relationships with SQL examples."
 showToc: true
-weight: 5
+weight: 6
 series: ["DBMS"]
 categories: ["DBMS", "Database Design"]
 tags: ["ER Diagram", "Database Design", "Normalization", "Relationships", "SQL"]
@@ -261,3 +261,4 @@ For mapping composite attribute we flatten the composite attribute into simple a
 6. The primary key of the new table will be the combination of the multi-valued attribute and the primary key of the entity set.
 
 
+![Multi Valued Attribute Example](/images/dbms4.svg)
