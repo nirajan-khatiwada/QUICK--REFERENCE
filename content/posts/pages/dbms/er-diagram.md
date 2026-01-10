@@ -41,4 +41,6 @@ We have two entity A and B
 - If one record in A is related to multiple records in B and one record in B is related to multiple records in A, then it is N:M relationship.
 
 
+### See youtube video for better understanding:
+[![ER Diagram Explanation](https://www.youtube.com/watch?v=lWX5mk2adrg)
 
