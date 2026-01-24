@@ -5,7 +5,7 @@ date: 2025-01-13
 description: "Deep dive into DRF Serializer fields. Explore CharFields, BooleanFields, DateFields, and custom validation logic."
 showToc: true
 weight: 2
-series: ["DRF"]
+series: ["Django REST Framework"]
 categories: ["Django REST Framework"]
 tags: ["Django", "Python", "DRF", "Serializers", "Validation", "Data Types"]
 summary: "Detailed reference for DRF serializer fields, including usage examples and input validation techniques."

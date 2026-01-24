@@ -5,7 +5,7 @@ date: 2025-01-14
 description: "Handle complex data relationships in DRF. Learn nested serializers, foreign keys, and implementing secure JWT Authentication."
 showToc: true
 weight: 3
-series: ["DRF"]
+series: ["Django REST Framework"]
 categories: ["Django REST Framework"]
 tags: ["Django", "DRF", "JWT", "Authentication", "Nested Serializers", "Relationships"]
 summary: "Master relationships in DRF with nested serializers and secure your API using JWT authentication."

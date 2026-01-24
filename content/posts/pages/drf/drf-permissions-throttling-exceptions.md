@@ -5,7 +5,7 @@ date: 2025-01-15
 description: "Secure and optimize your DRF API. Implement custom permissions, rate limiting (throttling), and handle exceptions gracefully."
 showToc: true
 weight: 4
-series: ["DRF"]
+series: ["Django REST Framework"]
 categories: ["Django REST Framework"]
 tags: ["Django", "DRF", "Security", "Permissions", "Throttling", "Error Handling"]
 summary: "Guide to managing API access control with permissions and throttling, plus effective exception handling strategies."

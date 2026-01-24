@@ -5,7 +5,7 @@ date: 2025-03-28
 description: "Customize how your API handles data formats. Master Parsers for input, Renderers for output, and Pagination for large datasets."
 showToc: true
 weight: 5
-series: ["DRF"]
+series: ["Django REST Framework"]
 categories: ["Django REST Framework"]
 tags: ["Django", "DRF", "Pagination", "JSON", "XML", "API Performance"]
 summary: "Learn to handle different content types with Parsers and Renderers, and implement efficient pagination for your API endpoints."

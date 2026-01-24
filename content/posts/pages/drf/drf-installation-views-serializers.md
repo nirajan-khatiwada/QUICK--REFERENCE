@@ -5,7 +5,7 @@ date: 2025-01-12
 description: "Master Django REST Framework basics. Learn installation, APIView, Request/Response objects, and building your first Serializers."
 showToc: true
 weight: 1
-series: ["DRF"]
+series: ["Django REST Framework"]
 categories: ["Django REST Framework"]
 tags: ["Django", "Python", "DRF", "Backend", "API", "Serialization"]
 summary: "A comprehensive guide to getting started with Django REST Framework, creating views, and handling data with serializers."
