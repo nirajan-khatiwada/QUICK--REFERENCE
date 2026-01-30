@@ -136,3 +136,8 @@ However, if you want the animation to occur only when the component is mounted d
 > Transtion will apply to both animate and exit animation and interactive elements like whileHover, whileTap etc.
 
 
+
+
+## Some important thing to consider in Framer motion.
+1. animate,initial and exit props dont work with inline components like span,strong etc. They work with block elements like div,section,article etc. so if you are working with inline elements then make sure to change their display property to block or inline-block.
+2. Make sure initial -> animate occurs only when the component is mounted and use animation if you want to animate the component when it is already mounted.
