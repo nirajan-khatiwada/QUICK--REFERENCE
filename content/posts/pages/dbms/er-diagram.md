@@ -42,5 +42,5 @@ We have two entity A and B
 
 
 ### See youtube video for better understanding:
-[![ER Diagram Explanation](https://www.youtube.com/watch?v=lWX5mk2adrg)
+[ER Diagram Explanation](https://www.youtube.com/watch?v=lWX5mk2adrg)
 

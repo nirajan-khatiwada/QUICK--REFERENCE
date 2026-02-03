@@ -1,17 +1,3 @@
----
-title: "Stack and Queue in Data Structures: Implementation & Operations"
-slug: "stack-and-queue-data-structures"
-date: 2025-12-29
-description: "Comprehensive guide to understanding and implementing Stack and Queue data structures using Python lists and linked lists."
-showToc: true
-weight: 6
-series: ["DSA"]
-categories: ["DSA", "Python"]
-tags: ["Stack", "Queue", "Priority Queue", "Data Structures", "Python", "Linked List"]
-summary: "Detailed implementation and explanation of Stack and Queue data structures, including linked list and array-based approaches, with priority queue variations."
-images: ["/images/stack-queue.png"]
----
-
 # Introduction to Stack and Queue
 
 **Stack** and **Queue** are fundamental linear data structures widely used in computer science for managing ordered data efficiently.
@@ -34,8 +20,41 @@ These structures form the basis for more complex algorithms and systems such as 
 ### Implementation Approaches
 
 ---
+### 1. Stack Using Core C Concepts
+```python
+class Stack:
+    def __init__(self, size):
+        self.size = size
+        self.stack = [None] * size
+        self.top = -1
 
-### 1. Stack Using Python List
+    def push(self, value):
+        if self.top == self.size - 1:
+            raise Exception("Stack Overflow")
+        self.top += 1
+        self.stack[self.top] = value
+
+    def pop(self):
+        if self.top == -1:
+            raise Exception("Stack Underflow")
+        value = self.stack[self.top]
+        self.stack[self.top] = None   # optional cleanup
+        self.top -= 1
+        return value
+
+    def peek(self):
+        if self.top == -1:
+            raise Exception("Stack is Empty")
+        return self.stack[self.top]
+
+stack = Stack(5)
+stack.push(10)
+print(stack.peek())  # Output: 10
+stack.push(20)
+print(stack.pop())   # Output: 20
+```
+
+### 2. Stack Using Python List
 
 Python’s list structure can be used as a stack, where:
 
@@ -75,7 +94,7 @@ class Stack:
 
 ---
 
-### 2. Stack Using Singly Linked List
+### 3. Stack Using Singly Linked List
 
 A custom linked list can efficiently implement a stack by pushing and popping from the head.
 
@@ -130,8 +149,36 @@ class Stack:
 - Widely used in scheduling, buffering, and breadth-first search (BFS).
 
 ---
+### 1. Queue Using Core C Concepts
+```python
+class Queue:
+    def __init__(self, size):
+        self.size = size
+        self.queue = [None] * size
+        self.front = 0
+        self.rear = -1
 
-### 1. Queue Using Python List
+    def enqueue(self,value):
+        if self.rear == self.size-1:
+            raise Exception("Queue Overflow")
+        else:
+            self.rear += 1
+            self.queue[self.rear] = value
+    def dequeue(self):
+        if self.front > self.rear:
+            raise Exception("Queue Underflow")
+        else:
+            value = self.queue[self.front]
+            self.queue[self.front] = None  # optional cleanup
+            self.front += 1
+            return value
+queue = Queue(5)
+queue.enqueue(10)
+print(queue.dequeue())  # Output: 10
+```
+
+
+### 2. Queue Using Python List
 
 ```python
 class Queue:
@@ -233,8 +280,47 @@ class Queue:
 - Implemented using heaps or sorted linked lists/arrays.
 
 ---
+### 1. Priority Queue Using Core C Concepts
 
-### 1. Priority Queue Using List (Max Priority)
+```python
+class PriorityQueue:
+    def __init__(self, size):
+        self.size = size
+        self.queue = [None] * size
+        self.rear = -1
+        self.front = 0
+    def enqueue(self, value):
+        if self.rear == self.size - 1:
+            raise Exception("Priority Queue Overflow")
+        else:
+            # put value at its correct position
+            for i in range(self.front,self.rear+1):
+                if self.queue[i] < value:
+                    # shift elements to right
+                    for j in range(self.rear,i-1,-1):
+                        self.queue[j+1] = self.queue[j]
+                    self.queue[i] = value
+                    self.rear += 1
+                    return
+            self.rear += 1
+            self.queue[self.rear] = value
+    def dequeue(self):
+        if self.front > self.rear:
+            raise Exception("Priority Queue Underflow")
+        else:
+            value = self.queue[self.front]
+            self.queue[self.front] = None  # optional cleanup
+            self.front += 1
+            return value
+queue = PriorityQueue(5)
+queue.enqueue(20)
+queue.enqueue(10)
+print(queue.dequeue())  # Output: 20
+
+```
+
+
+### 2. Priority Queue Using List (Max Priority)
 
 ```python
 class PriorityQueue:
@@ -269,7 +355,7 @@ class PriorityQueue:
 
 ---
 
-### 2. Priority Queue Using Linked List
+### 3. Priority Queue Using Linked List
 
 Sorted insertion maintains priority order.
 
@@ -316,3 +402,5 @@ class PriorityQueue:
             if node.next_element is None:
                 self.rear = node
 ```
+
+> Note: Learn Circular Queue for efficient memory usage in fixed-size queues.We won't cover it here.

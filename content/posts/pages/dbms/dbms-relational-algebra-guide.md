@@ -747,7 +747,7 @@ Employee ← Employee ∪ Π<sub>EID, Name, Dept, Salary</sub>(NewHires)
 | 4 | Alice | CS | 60000 |
 
 **Delete by Condition:**
-```
+```text
 Employee ← Employee − σ<sub>Dept = 'HR'</sub>(Employee)
 ```
 
@@ -759,12 +759,12 @@ Employee ← Employee − σ<sub>Dept = 'HR'</sub>(Employee)
 | 4 | Alice | CS | 60000 |
 
 **Delete Multiple Conditions:**
-```
+```text
 Employee ← Employee − σ<sub>Salary < 50000 ∨ Dept = 'IT'</sub>(Employee)
 ```
 
 **Delete All Tuples:**
-```
+```text
 Employee ← Employee − Employee  (Results in empty relation)
 ```
 
@@ -777,7 +777,7 @@ Employee ← Employee − Employee  (Results in empty relation)
 **Approach:** Update = Delete old tuples + Insert modified tuples
 
 **Syntax:** 
-```
+```text
 R ← (R − σ<sub>condition</sub>(R)) ∪ Π<sub>modified_attributes</sub>(σ<sub>condition</sub>(R))
 ```
 
@@ -793,7 +793,7 @@ R ← (R − σ<sub>condition</sub>(R)) ∪ Π<sub>modified_attributes</sub>(σ<
 **Update Single Attribute:**
 *Increase salary by 10% for CS employees*
 
-```
+```text
 Employee ← (Employee − σ<sub>Dept = 'CS'</sub>(Employee)) ∪ 
            Π<sub>EID, Name, Dept, Salary*1.1</sub>(σ<sub>Dept = 'CS'</sub>(Employee))
 ```
@@ -808,7 +808,7 @@ Employee ← (Employee − σ<sub>Dept = 'CS'</sub>(Employee)) ∪
 **Update Multiple Attributes:**
 *Change Bob's department to IT and increase salary*
 
-```
+```text
 Employee ← (Employee − σ<sub>Name = 'Bob'</sub>(Employee)) ∪ 
            {(3, 'Bob', 'IT', 55000)}
 ```
@@ -816,124 +816,10 @@ Employee ← (Employee − σ<sub>Name = 'Bob'</sub>(Employee)) ∪
 **Update with Complex Conditions:**
 *Give 5% raise to employees earning less than 50000*
 
-```
+```text
 LowSalary ← σ<sub>Salary < 50000</sub>(Employee)
 Employee ← (Employee − LowSalary) ∪ 
            Π<sub>EID, Name, Dept, Salary*1.05</sub>(LowSalary)
 ```
 
 ---
-
-### 6.4 Transaction Operations
-
-**Purpose:** Ensure database consistency during multiple operations
-
-**ACID Properties in Relational Algebra:**
-
-| Property | Description | Relational Algebra Implementation |
-|----------|-------------|--------------------------------|
-| **Atomicity** | All or nothing | Group operations using assignment |
-| **Consistency** | Valid state to valid state | Use constraints in conditions |
-| **Isolation** | Concurrent transactions don't interfere | Sequential operation execution |
-| **Durability** | Changes persist | Assignment makes changes permanent |
-
-**Transaction Example:**
-*Transfer employee from one department to another with salary adjustment*
-
-```
--- Step 1: Verify employee exists
-Temp1 ← σ<sub>EID = 123</sub>(Employee)
-
--- Step 2: Remove from current department
-Employee ← Employee − Temp1
-
--- Step 3: Add to new department with updated info
-Employee ← Employee ∪ {(123, 'John', 'NewDept', NewSalary)}
-```
-
----
-
-### 6.5 Bulk Operations
-
-**Purpose:** Perform operations on multiple tuples efficiently
-
-**Bulk Insert:**
-```
-Employee ← Employee ∪ σ<sub>Salary > 60000</sub>(Contractors)
-```
-
-**Bulk Update:**
-```
-HighEarners ← σ<sub>Salary > 70000</sub>(Employee)
-Employee ← (Employee − HighEarners) ∪ 
-           Π<sub>EID, Name, Dept, Salary*0.95</sub>(HighEarners)
-```
-
-**Bulk Delete:**
-```
-Employee ← Employee − σ<sub>Dept ∈ {'HR', 'Admin'}</sub>(Employee)
-```
-
----
-
-### 6.6 Constraints and Validation
-
-**Purpose:** Ensure data integrity during manipulation operations
-
-**Primary Key Constraint:**
-```
--- Before insertion, check for duplicates
-NewEmployee ← {(NewEID, NewName, NewDept, NewSalary)}
-Duplicate ← Π<sub>EID</sub>(Employee) ∩ Π<sub>EID</sub>(NewEmployee)
-
--- Insert only if no duplicate
-Employee ← Employee ∪ (NewEmployee − (NewEmployee ⋈ Duplicate))
-```
-
-**Foreign Key Constraint:**
-```
--- Ensure department exists before assigning employee
-ValidDepts ← Π<sub>DeptName</sub>(Department)
-NewEmployee ← {(EID, Name, DeptName, Salary)}
-
--- Insert only if department is valid
-Employee ← Employee ∪ (NewEmployee ⋈ ValidDepts)
-```
-
-**Check Constraints:**
-```
--- Ensure salary is positive
-ValidSalary ← σ<sub>Salary > 0</sub>(NewEmployee)
-Employee ← Employee ∪ ValidSalary
-```
-
----
-
-## 7. Database Manipulation vs Query Operations
-
-| Aspect | Query Operations | Manipulation Operations |
-|--------|------------------|------------------------|
-| **Purpose** | Retrieve data | Modify data |
-| **Result** | New relation (temporary) | Modified relation (permanent) |
-| **Examples** | σ, Π, ⋈, ∪, ∩ | Insert, Update, Delete |
-| **Side Effects** | No change to original data | Changes original data |
-| **Reversibility** | Always reversible | May not be reversible |
-| **SQL Equivalent** | SELECT | INSERT, UPDATE, DELETE |
-
-**Combined Example - Employee Promotion System:**
-
-```
--- Query: Find eligible employees
-Eligible ← σ<sub>Years > 2 ∧ Performance = 'Excellent'</sub>(Employee)
-
--- Manipulation: Promote eligible employees
-Promoted ← Π<sub>EID, Name, Dept, Salary*1.15</sub>(Eligible)
-Employee ← (Employee − Eligible) ∪ Promoted
-
--- Query: Verify promotion results
-NewHighEarners ← σ<sub>Salary > 70000</sub>(Employee)
-```
----
-
-
-
