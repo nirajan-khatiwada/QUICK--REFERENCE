@@ -88,7 +88,34 @@ def get_object(self):
     except Author.DoesNotExist:
         raise Http404("Author not found")
 ```
+### `get_permissions()`
+**Returns the list of permissions that the view requires**
+This method is used to determine the permissions that are required for the view. It returns a list of permission classes that will be used to check if the user has the necessary permissions to access the view.
 
+```python
+def get_permissions(self):
+    if self.request.method == 'POST':
+        return [IsAdminUser()]
+    return [IsAuthenticated()]
+```
+
+### `perform_create(serializer)`
+**Handles the creation of a new object**
+This method is called when a new object is being created. It takes the serializer as an argument and is responsible for saving the new object to the database.
+
+```python
+def perform_create(self, serializer):
+    serializer.save(owner=self.request.user)
+```
+
+### `perform_delete(instance)`
+**Handles the deletion of an object**
+This method is called when an object is being deleted. It takes the instance to be deleted as an argument and is responsible for deleting it from the database.
+
+```python
+def perform_delete(self, instance):
+    instance.delete()
+```
 
 ##  Mixins in Django REST Framework (GenericAPIView)
 

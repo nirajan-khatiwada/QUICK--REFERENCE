@@ -1288,8 +1288,9 @@ print(c.__dict__)  # {'p1_var': 'from Parent1', 'unique_var': 'from Parent2 uniq
 The fundamental difference from C++ is that Python maintains a single object with one `__dict__` throughout the inheritance hierarchy, while all methods operate on this shared storage space. Name mangling ensures private variable isolation while maintaining the single dictionary approach.
 The self parameter is a reference to the current instance of a class. It is used to access variables and methods that belong to that specific object. Additionally, self allows the creation of instance attributes, which are unique to each object of the class and can be accessed by any member function within the class.
 
+**Example:**
 
-*Example:*
+```python
 class Person:
     def __init__(self):
         self.name="Nirajan"
@@ -1304,20 +1305,31 @@ class Person:
 
     def greet(self):
         print("Hello, Welcome to the class")
+```
 
 ### 5.3 Calling a Member Function
+
 We can call a member function of a class using the dot operator (.) followed by the function name and parentheses.
 
-*Syntax:*
-object_name.method_name(arguments)
+**Syntax:**
 
-*Example:*
+```python
+object_name.method_name(arguments)
+```
+
+**Example:**
+
+```python
 person1.display()  # Calls the display method for person1 object
+```
 
 ### 5.4 Nested Member Function
+
 We can call a member function from another member function of the same class using the self keyword.
 
-*Syntax:*
+**Syntax:**
+
+```python
 class ClassName:
     def method1(self):
         #code block
@@ -1325,8 +1337,11 @@ class ClassName:
 
     def method2(self):
         #code block
+```
 
-*Example:*
+**Example:**
+
+```python
 class Person:
     def __init__(self):
         self.name="Nirajan"
@@ -1341,6 +1356,7 @@ class Person:
 
     def greet(self):
         print("Hello, Welcome to the class")
+```
 
 ---
 
@@ -1349,14 +1365,20 @@ class Person:
 A constructor is a special type of method (function) which is used to initialize the instance members of the class. It is called when an object of the class is created. This allows you to set up each object with its specific initial state.
 
 ### 6.1 Creating a Constructor
-In Python, the constructor method is called __init__. It is a special method that is automatically called when an object is created.
 
-*Syntax:*
+In Python, the constructor method is called `__init__`. It is a special method that is automatically called when an object is created.
+
+**Syntax:**
+
+```python
 class ClassName:
     def __init__(self, parameters):
         #code block
+```
 
-*Example:*
+**Example:**
+
+```python
 class Person:
     def __init__(self, name, age, classes):
         # Initialize instance attributes with provided values
@@ -1368,18 +1390,26 @@ class Person:
         print(f"Name: {self.name}")
         print(f"Age: {self.age}")
         print(f"Class: {self.classes}")
+```
 
 ### 6.2 Creating an Object with Constructor
+
 When an object is created, the constructor method is automatically called with the arguments passed to the class.
 
-*Syntax:*
-object_name = ClassName(arguments)
+**Syntax:**
 
-*Example:*
+```python
+object_name = ClassName(arguments)
+```
+
+**Example:**
+
+```python
 # Creating a Person object with name, age, and classes values
 person1 = Person("Nirajan", 20, "Bachelor")
+```
 
-In this example, the __init__ method is called with "Nirajan", 20, and "Bachelor" as arguments, which initializes the object's attributes.
+In this example, the `__init__` method is called with "Nirajan", 20, and "Bachelor" as arguments, which initializes the object's attributes.
 
 ---
 
@@ -1396,9 +1426,12 @@ In this example, the __init__ method is called with "Nirajan", 20, and "Bachelor
 Access specifiers control the visibility and accessibility of class members (attributes and methods). Understanding access control is important for implementing encapsulation - one of the four pillars of OOP.
 
 ### 6.1 Public Members
+
 Public members are accessible from both inside and outside the class. By default, all members in Python are public unless specified otherwise.
 
-*Example:*
+**Example:**
+
+```python
 class Person:
     def __init__(self):
         self.name = "Alice"  # Public member
@@ -1408,11 +1441,15 @@ class Person:
 person1 = Person()
 print(person1.name)  # Output: Alice
 person1.display()    # Output: Name: Alice
+```
 
 ### 4.2 Protected Members
+
 Protected members are accessible within the class and its subclasses. They are denoted by a single underscore (_) before the member name.
 
-*Example:*
+**Example:**
+
+```python
 class Person:
     def __init__(self):
         self._name = "Alice"  # Protected member
@@ -1425,31 +1462,35 @@ class Student(Person):
         print(f"Accessing protected member: {self._name}")
 
 student1 = Student()
-student1.show()    
-
+student1.show()
+```
 
 ```bash
 Name: Alice
 Accessing protected member: Alice
 ```
 
-Explaination: Here, the _name and _display() are protected members of Person class. They can be accessed within the Person class and also in the Student subclass. However, they should not be accessed directly from outside the class or subclass. 
-
+Explaination: Here, the _name and _display() are protected members of Person class. They can be accessed within the Person class and also in the Student subclass. However, they should not be accessed directly from outside the class or subclass.
 
 > Note: Accessing a protected member using object._member_name from outside the class is possible in Python but not recommended, as it violates the principle of encapsulation. However, it is perfectly valid to access protected members within the class itself or any of its subclasses.
 
-
 ### 4.3 Private Members
-Private members are accessible only within the class.They cant be accessed from outside the class or even in subclasses. They are denoted by a double underscore (__) before the member name.
 
-*Example:*
+Private members are accessible only within the class. They cant be accessed from outside the class or even in subclasses. They are denoted by a double underscore (__) before the member name.
+
+**Example:**
+
+```python
 class Person:
     __city = "New York"  # Private member
 
 person1 = Person()
 print(person1.__city)  # Error: 'Person' object has no attribute '__city'
+```
 
-*Example of private variable and method:*
+**Example of private variable and method:**
+
+```python
 class Person:
     def __init__(self):
         self.__name = "Alice"  # Private member
@@ -1465,6 +1506,7 @@ person1 = Person()
 print(person1.__name)  # Error: 'Person' object has no attribute '__name'
 person1.__display()  # Error: 'Person' object has no attribute '__display'
 person1.show()  # Correct way to access private members within the class as show() is public
+```
 
 
 **Table of Access Specifiers in Python:**
@@ -1483,13 +1525,17 @@ person1.show()  # Correct way to access private members within the class as show
 Inheritance is a mechanism in which one class acquires the properties and behavior of another class. The class which inherits the properties and behavior is known as the child class, and the class whose properties and behavior are inherited is known as the parent class.
 
 ### 5.1 Creating a Child Class
+
 To create a child class that inherits from a parent class, we specify the parent class in parentheses after the child class name.
 
-*Syntax:*
+**Syntax:**
+
+```python
 class ChildClassName(ParentClassName):
     #code block
+```
 
-*Example:*
+**Example:**
 ```python
 class Employee:
     def set_name(self, name):
@@ -1529,7 +1575,9 @@ Methods:
 
 Method overriding is a feature of object-oriented programming that allows a subclass to provide a specific implementation of a method that is already provided by its parent class. When a method in a subclass has the same name as a method in the parent class, the method in the subclass overrides the method in the parent class.
 
-*Example:*
+**Example:**
+
+```python
 class Person:
     def display(self):
         print("Person class")
@@ -1542,6 +1590,7 @@ student1 = Student()
 student1.display()  # Calls Student's display method, not Person's
 
 # Output: Student class
+```
 
 We can also call the parent class's method from the overridden method using the super() function:
 
@@ -1551,10 +1600,15 @@ When both a parent class and a child class define a method with the same name, c
 
 To explicitly invoke the parent class’s version of the method, we use the super() function. This is especially useful when the child class method needs to extend or build upon the functionality of the parent class method.
 
-*Syntax:*
-super().method_name()
+**Syntax:**
 
-*Example:*
+```python
+super().method_name()
+```
+
+**Example:**
+
+```python
 class Person:
     def display(self):
         print("Person class")
@@ -1567,6 +1621,7 @@ class Student(Person):
 
 student1 = Student()
 student1.display()
+```
 
 ```bash
 # Output:
@@ -1575,7 +1630,8 @@ Student class
 ```
 
 
-Usecase:
+**Usecase:**
+
 Consider the following implementation:
 ```python
 class Employee:
@@ -1598,26 +1654,35 @@ type_emp1.display_employee()  # Error: 'TypeEmployee' object has no attribute 'd
 In this example,the __init__ method of the TypeEmployee class overrides the __init__ method of the Employee class. So during the creation of TypeEmployee object, the __init__ method of Employee class is not called, and hence the name attribute is not initialized. When we try to call display_employee() method, it raises an error because the name attribute does not exist in the TypeEmployee object so inorder to fix this issue we have two solutions:
 
 - Copying the code of parent class's __init__ method inside child class's __init__ method
+
+```python
 class TypeEmployee(Employee):
     def __init__(self, name, age, salary):
         self.name = name  # Initializing name attribute
         self.age = age
         self.salary = salary
+```
 
 - Using super() to call the parent class's __init__ method inside child class's __init__ method
+
+```python
 class TypeEmployee(Employee):
     def __init__(self, name, age, salary):
         super().__init__(name, age)  # Calling parent class's __init__ method
         self.salary = salary
+```
 
 **Note:** When we use super() it work based on MRO to resolve which class function to use but ClassName.functionName() explicitly tell which class function to use.
 
 
 
 ## 6. Method Resolution Order (MRO)
+
 Method Resolution Order (MRO) is the order in which Python looks for a method or attribute in an inheritance hierarchy. It determines the sequence in which base classes are searched when executing a method. MRO is especially important in multiple inheritance scenarios.
 
-*Example:*
+**Example:**
+
+```python
 class C:
     f = "dirajan"
 
@@ -1634,10 +1699,14 @@ class D(A, B):
 d = D()
 print(D.__mro__)  # Shows the method resolution order
 d.display()
+```
 
-*Output:*
+**Output:**
+
+```bash
 (<class '__main__.D'>, <class '__main__.A'>, <class '__main__.B'>, <class '__main__.C'>, <class 'object'>)
 nirajan
+```
 
 It means Python will search for the attribute or method in the order of D->A->B->C->object. If the attribute/method is not found in D, it will search in A, and so on. But if the attribute/method is found in D, it will not search further in A, B, C, or object.
 
@@ -1647,21 +1716,30 @@ It means Python will search for the attribute or method in the order of D->A->B-
 Inheritance is a mechanism in which one class acquires the properties and behavior of another class. There are different types of inheritance in Python:
 
 #### 5.4.1 Single Inheritance
+
 In single inheritance, a class inherits from only one parent class.
 
 The pictorial representation of single inheritance is:
+
+```
     A
     |
     B
+```
 
-*Syntax:*
+**Syntax:**
+
+```python
 class ParentClass:
     #code block
 
 class ChildClass(ParentClass):
     #code block
+```
 
-*Example:*
+**Example:**
+
+```python
 class Person:
     def __init__(self, name, age):
         self.name = name
@@ -1679,19 +1757,28 @@ class Student(Person):
 
 student1 = Student("Alice", 30, 101)
 student1.display()
+```
 
+```bash
 # Output:
 # ID: 101 Name: Alice, Age: 30
+```
 
 #### 5.4.2 Multiple Inheritance
+
 In multiple inheritance, a class inherits from more than one parent class.
 
 The pictorial representation of multiple inheritance is:
+
+```
     A    B
      \  /
       C
+```
 
-*Syntax:*
+**Syntax:**
+
+```python
 class ParentClass1:
     #code block
 
@@ -1700,8 +1787,11 @@ class ParentClass2:
 
 class ChildClass(ParentClass1, ParentClass2):
     #code block
+```
 
-*Example:*
+**Example:**
+
+```python
 class Person:
     def __init__(self, name, age):
         self.name = name
@@ -1729,21 +1819,30 @@ class Student(Person, Address):
 
 student1 = Student("Alice", 30, 101, "New York", "New York")
 student1.display()
+```
 
+```bash
 # Output:
 # ID: 101 Name: Alice, Age: 30 City: New York, State: New York
+```
 
 #### 5.4.3 Multilevel Inheritance
+
 In multilevel inheritance, a class inherits from a parent class, and another class inherits from the child class.
 
 The pictorial representation of multilevel inheritance is:
+
+```
     A
     |
     B
     |
     C
+```
 
-*Syntax:*
+**Syntax:**
+
+```python
 class ParentClass:
     #code block
 
@@ -1752,8 +1851,11 @@ class ChildClass(ParentClass):
 
 class GrandChildClass(ChildClass):
     #code block
+```
 
-*Example:*
+**Example:**
+
+```python
 class Person:
     def __init__(self, name, age):
         self.name = name
@@ -1781,19 +1883,28 @@ class CollegeStudent(Student):
 
 student1 = CollegeStudent("Alice", 30, 101, "Bachelor")
 student1.display()
+```
 
+```bash
 # Output:
 # Class: Bachelor ID: 101 Name: Alice, Age: 30
+```
 
 #### 5.4.4 Hierarchical Inheritance
+
 In hierarchical inheritance, more than one class inherits from a single parent class.
 
 The pictorial representation of hierarchical inheritance is:
+
+```
     A
    / \
   B   C
+```
 
-*Syntax:*
+**Syntax:**
+
+```python
 class ParentClass:
     #code block
 
@@ -1802,8 +1913,11 @@ class ChildClass1(ParentClass):
 
 class ChildClass2(ParentClass):
     #code block
+```
 
-*Example:*
+**Example:**
+
+```python
 class Person:
     def __init__(self, name, age):
         self.name = name
@@ -1833,10 +1947,13 @@ student1.display()
 
 employee1 = Employee("Bob", 25, 201)
 employee1.display()
+```
 
+```bash
 # Output:
 # ID: 101 Name: Alice, Age: 30
 # Emp ID: 201 Name: Bob, Age: 25
+```
 
 **Note:** Hybrid inheritance is a combination of two or more types of inheritance.
 
@@ -1850,17 +1967,23 @@ employee1.display()
 Properties provide controlled access to class attributes. They allow you to implement getter and setter methods that act like attributes.
 
 ### 7.1 Getters
+
 Getters are methods implemented using the @property decorator. They are specially used:
 - To act as a value (data) instead of a method
 - To access the value of a private attribute without directly accessing it
 
-*Syntax:*
+**Syntax:**
+
+```python
 class ClassName:
     @property
     def method_name(self):
         #code block
+```
 
-*Example:*
+**Example:**
+
+```python
 class Person:
     def __init__(self, name, age):
         self._name = name  # Protected attribute
@@ -1873,19 +1996,26 @@ class Person:
 person1 = Person("Nirajan", 20)
 print(person1.display)  # Output: Name: Nirajan, Age: 20
 # Note: No parentheses used - accessed like an attribute, not a method
+```
 
 ### 7.2 Setters
+
 Setters are methods implemented using the @method_name.setter decorator. They are specially used:
 - To set the value of a private attribute without directly setting it
 - To perform validation before setting the value of an attribute
 
-*Syntax:*
+**Syntax:**
+
+```python
 class ClassName:
     @method_name.setter
     def method_name(self, value):
         #code block
+```
 
-*Example:*
+**Example:**
+
+```python
 class Person:
     def __init__(self, name, age):
         self._name = name
@@ -1902,9 +2032,9 @@ class Person:
 
 person1 = Person("Nirajan", 20)
 print(person1.display)  # Output: Name: Nirajan, Age: 20
-
 person1.display = "Alice, 30"  # Using setter to modify attributes
 print(person1.display)  # Output: Name: Alice, Age: 30
+```
 
 ---
 
@@ -1914,17 +2044,18 @@ Magic methods, also known as dunder methods (double underscore), are special met
 
 Some of the commonly used magic methods are:
 
-- __init__: Constructor method, called when an object is created
-- __str__: Called by the str() built-in function to return a string representation of an object
-- __repr__: Called by the repr() built-in function to return an unambiguous string representation of an object
-- __add__: Called by the + operator to perform addition
-- __len__: Called by the len() built-in function to return the length of an object
-- __call__: Called when an object is called as a function
+- `__init__`: Constructor method, called when an object is created
+- `__str__`: Called by the str() built-in function to return a string representation of an object
+- `__repr__`: Called by the repr() built-in function to return an unambiguous string representation of an object
+- `__add__`: Called by the + operator to perform addition
+- `__len__`: Called by the len() built-in function to return the length of an object
+- `__call__`: Called when an object is called as a function
 
 **Note:** All magic methods can be seen using `dir(object_name)` method, and we can override these methods in our class.
 
+**Example of various magic methods:**
 
-*Example of various magic methods:*
+```python
 class Person:
     def __init__(self, name, age):
         self.name = name
@@ -1957,6 +2088,7 @@ print(person1 + person2)  # Output: 55 (uses __add__)
 print(len(person1))  # Output: 5 (uses __len__ to get length of name)
 
 print(person1())  # Output: Name: Alice, Age: 30 (uses __call__)
+```
 
 ---
 
@@ -1966,7 +2098,9 @@ Operator overloading is a feature of object-oriented programming that allows us 
 
 To overload an operator, we define the corresponding magic method in the class:
 
-*Example:*
+**Example:**
+
+```python
 class Point:
     def __init__(self, x, y):
         self.x = x
@@ -1985,8 +2119,11 @@ point1 = Point(1, 2)
 point2 = Point(3, 4)
 point3 = point1 + point2  # Uses the __add__ method
 print(point3)  # Output: (4, 6)
+```
 
-For unary operators like negation (-), we can overload the __neg__ method:
+For unary operators like negation (-), we can overload the `__neg__` method:
+
+```python
 class Point:
     def __init__(self, x, y):
         self.x = x
@@ -2001,6 +2138,7 @@ class Point:
 point1 = Point(1, 2)
 point2 = -point1  # Uses the __neg__ method
 print(point2)  # Output: (-1, -2)
+```
 
 **Note:** We can only overload existing operators. We cannot create new operators.
 
@@ -2011,13 +2149,18 @@ print(point2)  # Output: (-1, -2)
 
 Static methods are methods that can be called without creating an object of the class. They are defined using the @staticmethod decorator and can be called using the class name.
 
-*Syntax:*
+**Syntax:**
+
+```python
 class ClassName:
     @staticmethod
     def method_name(parameters):
         #code block
+```
 
-*Example:*
+**Example:**
+
+```python
 class Calculator:
     @staticmethod
     def add(a, b):
@@ -2030,6 +2173,7 @@ print(result)  # Output: 8
 calculator = Calculator()
 result = calculator.add(5, 3)
 print(result)  # Output: 8
+```
 
 
 
@@ -2038,12 +2182,18 @@ print(result)  # Output: 8
 ## 11. Introspection with dir() and __dict__
 
 ### 11.1 The dir() Method
+
 The dir() method returns a list of attributes and methods of any object. It provides a way to introspect objects at runtime.
 
-*Syntax:*
-dir(object)
+**Syntax:**
 
-*Example:*
+```python
+dir(object)
+```
+
+**Example:**
+
+```python
 class Person:
     def __init__(self):
         self.name = "Alice"
@@ -2052,19 +2202,29 @@ class Person:
 person1 = Person()
 print(dir(person1))
 # Output: ['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', 'age', 'name']
+```
 
-*Example with list:*
+**Example with list:**
+
+```python
 l = [1, 2, 3]
 print(dir(l))
 # Output: ['__add__', '__class__', '__class_getitem__', '__contains__', '__delattr__', '__delitem__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getitem__', '__getstate__', '__gt__', '__hash__', '__iadd__', '__imul__', '__init__', '__init_subclass__', '__iter__', '__le__', '__len__', '__lt__', '__mul__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__reversed__', '__rmul__', '__setattr__', '__setitem__', '__sizeof__', '__str__', '__subclasshook__', 'append', 'clear', 'copy', 'count', 'extend', 'index', 'insert', 'pop', 'remove', 'reverse', 'sort']
+```
 
 ### 11.2 The __dict__ Method
+
 The __dict__ attribute contains a dictionary of an object's attributes. It provides another way to examine an object's state.
 
-*Syntax:*
-object.__dict__
+**Syntax:**
 
-*Example:*
+```python
+object.__dict__
+```
+
+**Example:**
+
+```python
 class Person:
     def __init__(self):
         self.name = "Alice"
@@ -2075,24 +2235,26 @@ print(person1.__dict__)  #{'name': 'Alice', 'age': 30}
 
 person1.name = "Bob"  # Set an instance attribute
 print(person1.__dict__)  # {'name': 'Bob', 'age': 30}
+```
 
 ---
 
 
-## 14. How python works internally
+## 14. How Python Works Internally
 
 # Python Instance Variables and Method Resolution Guide
 
 ## Understanding Instance Variable Storage
 
 ### Key Concepts:
-- *Single Object per Instance*: When you create a class instance, Python creates only ONE object
-- **__dict__ Storage**: All instance attributes are stored in the instance's __dict__ dictionary
-- *Dynamic Creation*: Attributes are created when first assigned, not when accessed
-- *Direct Modification*: All attribute changes modify the same __dict__
+- **Single Object per Instance**: When you create a class instance, Python creates only ONE object
+- **`__dict__` Storage**: All instance attributes are stored in the instance's `__dict__` dictionary
+- **Dynamic Creation**: Attributes are created when first assigned, not when accessed
+- **Direct Modification**: All attribute changes modify the same `__dict__`
 
 ### Basic Example:
 
+```python
 class Person:
     def __init__(self, name):
         self.name = name  # Creates "name" key in __dict__
@@ -2105,17 +2267,19 @@ print(p.__dict__)  # {'name': 'Alice', 'age': 25}
 
 p.name = "Bob"     # Modifies existing "name" key
 print(p.__dict__)  # {'name': 'Bob', 'age': 25}
+```
 
 ## How Attribute Assignment and Access Works
 
 ### Core Rules:
-- **Assignment (self.attr = value)**: Always creates/modifies key in instance's __dict__
-- **Access (self.attr)**: Checks instance __dict__ first, then class hierarchy
-- *Missing Attribute*: Accessing non-existent attribute raises AttributeError
-- *Creating Attribute*: Assigning to non-existent attribute creates new __dict__ entry
+- **Assignment (self.attr = value)**: Always creates/modifies key in instance's `__dict__`
+- **Access (self.attr)**: Checks instance `__dict__` first, then class hierarchy
+- **Missing Attribute**: Accessing non-existent attribute raises `AttributeError`
+- **Creating Attribute**: Assigning to non-existent attribute creates new `__dict__` entry
 
 ### Example:
 
+```python
 class Demo:
     def __init__(self):
         self.x = 10
@@ -2136,16 +2300,18 @@ print(d.__dict__)  # {'x': 30, 'y': 100}
 # This creates new attribute:
 d.z = 50
 print(d.__dict__)  # {'x': 30, 'y': 100, 'z': 50}
+```
 
 ## Inheritance: One Instance, One __dict__
 
 ### Key Points:
-- **Single __dict__**: Child class instance has only ONE __dict__
-- *Shared Storage*: Parent and child methods modify the SAME __dict__
-- *No Separate Variables*: Unlike C++, there's no separate storage for parent/child attributes
+- **Single `__dict__`**: Child class instance has only ONE `__dict__`
+- **Shared Storage**: Parent and child methods modify the SAME `__dict__`
+- **No Separate Variables**: Unlike C++, there's no separate storage for parent/child attributes
 
 ### Example:
 
+```python
 class Parent:
     def __init__(self):
         self.name = "parent"
@@ -2169,38 +2335,40 @@ print(c.__dict__)    # {'name': 'child', 'parent_var': 'from parent'}
 
 c.set_child_attr()
 print(c.__dict__)    # {'name': 'child', 'parent_var': 'from parent', 'child_var': 'from child'}
+```
 
 ## Variable Access Levels: Public, Protected, Private
 
 ### Concepts:
 - **Public (self.var)**: Accessible everywhere
 - **Protected (self._var)**: Convention for internal use (still accessible)
-- **Private (self.__var)**: Name mangling applied, creates _ClassName__var
+- **Private (self.__var)**: Name mangling applied, creates `_ClassName__var`
 
 ### Public and Protected Variables
-- *Public variables* (name) and *protected variables* (_name) are directly shareable between base and derived classes
+- **Public variables** (name) and **protected variables** (_name) are directly shareable between base and derived classes
 - They are stored in the instance dictionary with their original names
 - No name transformation occurs
 
 ### Private Variables - Name Mangling Behavior
 
 #### Instance Variable Storage
-- When creating *private instance variables* (__name) in base and derived classes, Python applies *name mangling*
-- All variables are stored in the **same single __dict__** for the instance
-- However, private variables get *different keys* due to name mangling
+- When creating **private instance variables** (`__name`) in base and derived classes, Python applies **name mangling**
+- All variables are stored in the **same single `__dict__`** for the instance
+- However, private variables get **different keys** due to name mangling
 
 #### Name Mangling Process
-- *Base class A*: __name becomes _A__name in the dictionary
-- *Derived class B*: __name becomes _B__name in the dictionary
+- **Base class A**: `__name` becomes `_A__name` in the dictionary
+- **Derived class B**: `__name` becomes `_B__name` in the dictionary
 - This creates unique keys for each class's private variables
 
 #### Access Mechanism
-- When accessing self.__name in class A → Python searches for _A__name in __dict__
-- When accessing self.__name in class B → Python searches for _B__name in __dict__
+- When accessing `self.__name` in class A → Python searches for `_A__name` in `__dict__`
+- When accessing `self.__name` in class B → Python searches for `_B__name` in `__dict__`
 - Same attribute name, different mangled keys, but accessed through the same class functions
 
 ### Example:
 
+```python
 class AccessDemo:
     def __init__(self):
         self.public = "everyone can see"
@@ -2216,25 +2384,30 @@ print(obj.public)      # Works
 print(obj._protected)  # Works (but shouldn't be used externally)
 # print(obj.__private) # AttributeError
 print(obj._AccessDemo__private)  # Works (name mangled form)
+```
 
 #### Dictionary Structure Example:
+
+```python
 instance.__dict__ = {
     'public_var': 'shared',           # Public - same key
     '_protected_var': 'shared',       # Protected - same key  
     '_A__private_var': 'base_value',  # Private in base class
     '_B__private_var': 'derived_value' # Private in derived class
 }
+```
 
 ## Method Resolution Order (MRO) and Function Execution
 
 ### Core Concepts:
-- *MRO*: Python uses C3 linearization to determine method lookup order
-- *Method Lookup*: When calling self.method(), Python searches MRO until it finds the method. It first searches function in 1st class of MRO if not found then second and so on
-- *Attribute Access in Methods*: Even when executing parent method, self refers to the instance
-- **Single __dict__ Rule**: All methods modify the same instance __dict__
+- **MRO**: Python uses C3 linearization to determine method lookup order
+- **Method Lookup**: When calling `self.method()`, Python searches MRO until it finds the method. It first searches function in 1st class of MRO if not found then second and so on
+- **Attribute Access in Methods**: Even when executing parent method, `self` refers to the instance
+- **Single `__dict__` Rule**: All methods modify the same instance `__dict__`
 
 ### Single Inheritance Example:
 
+```python
 class A:
     def method(self):
         self.a_var = "from A"
@@ -2253,9 +2426,11 @@ b.method()
 # Output:
 # B.method, __dict__: {'b_var': 'from B'}
 # A.method, __dict__: {'b_var': 'from B', 'a_var': 'from A'}
+```
 
 ### Multiple Inheritance Example:
 
+```python
 class Parent1:
     def shared_method(self):
         self.p1_var = "from Parent1"
@@ -2279,18 +2454,42 @@ print(c.__dict__)  # {'p1_var': 'from Parent1'}
 
 c.unique_method()  # Parent2.unique_method (only one available)
 print(c.__dict__)  # {'p1_var': 'from Parent1', 'unique_var': 'from Parent2 unique'}
+```
 
 ## Summary
 
 ### Key Takeaways:
-1. **One Instance = One __dict__**: All attributes stored in single dictionary
-2. *Method Execution*: MRO determines which method runs, but self always refers to the instance
-3. *All Methods Use Same Storage*: Every method operates on the same instance __dict__
-4. *Name Mangling*: Private variables (__var) become _ClassName__var in __dict__
-5. *MRO Rules*: Left-to-right, depth-first search with C3 linearization for complex hierarchies
-6. *Variable Sharing*:
-   - *Public/Protected*: Same key names, directly shareable
-   - *Private*: Different mangled key names (_ClassName__varname), accessed through same class methods but stored separately
-7. *Name Mangling Ensures*: Private variable isolation while using unified storage
+1. **One Instance = One `__dict__`**: All attributes stored in single dictionary
+2. **Method Execution**: MRO determines which method runs, but `self` always refers to the instance
+3. **All Methods Use Same Storage**: Every method operates on the same instance `__dict__`
+4. **Name Mangling**: Private variables (`__var`) become `_ClassName__var` in `__dict__`
+5. **MRO Rules**: Left-to-right, depth-first search with C3 linearization for complex hierarchies
+6. **Variable Sharing**:
+   - **Public/Protected**: Same key names, directly shareable
+   - **Private**: Different mangled key names (`_ClassName__varname`), accessed through same class methods but stored separately
+7. **Name Mangling Ensures**: Private variable isolation while using unified storage
 
-The fundamental difference from C++ is that Python maintains a single object with one __dict__ throughout the inheritance hierarchy, while all methods operate on this shared storage space. Name mangling ensures private variable isolation while maintaining the single dictionary approach.
+The fundamental difference from C++ is that Python maintains a single object with one `__dict__` throughout the inheritance hierarchy, while all methods operate on this shared storage space. Name mangling ensures private variable isolation while maintaining the single dictionary approach.
+
+
+
+## 13. Comparison with Other Languages (Not Supported in Python)
+
+### 13.1 Types of Inheritance in C++
+
+Inheritance is a mechanism in which one class acquires the properties and behavior of another class. While Python has a more straightforward inheritance model, other languages like C++ offer more granular control over inheritance:
+
+- **Public Inheritance**: In public inheritance, the public members of the base class become public members of the derived class, and the protected members of the base class become protected members of the derived class.
+
+- **Protected Inheritance**: In protected inheritance, the public members of the base class become protected members of the derived class, and the protected members of the base class become protected members of the derived class while the private members of the base class is not inherited.
+
+- **Private Inheritance**: In private inheritance, the public members of the base class become private members of the derived class, and the protected members of the base class become private members of the derived class while the private members of the base class is not inherited.
+
+Table of Inheritance in C++:
+| Inheritance Type | Public Members | Protected Members | Private Members |
+|------------------|----------------|-------------------|-----------------|
+| Public Inheritance | Public          | Protected         | Not Inherited    |
+| Protected Inheritance | Protected     | Protected         | Not Inherited    |
+| Private Inheritance | Private        | Private          | Not Inherited    |
+
+This comparison helps understand the differences in how various languages implement OOP concepts.
