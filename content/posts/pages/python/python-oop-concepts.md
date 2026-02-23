@@ -2471,11 +2471,139 @@ print(c.__dict__)  # {'p1_var': 'from Parent1', 'unique_var': 'from Parent2 uniq
 
 The fundamental difference from C++ is that Python maintains a single object with one `__dict__` throughout the inheritance hierarchy, while all methods operate on this shared storage space. Name mangling ensures private variable isolation while maintaining the single dictionary approach.
 
+## 13. Some other OOP Concepts Not Supported in Python
+
+### 13.1 Data Class decorator in Python
+Data class decorator is a built-in decorator in Python that provides a way to automatically generate special methods like __init__, __repr__, __eq__, etc., for classes that are primarily used to store data. It is not an OOP concept but a feature of Python that simplifies the creation of classes that are mainly used to hold data.
+
+For Example Before using dataclass:
+
+```python
+class Person:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    def __repr__(self):
+        return f"Person(name={self.name}, age={self.age})"
+
+    def __eq__(self, other):
+        if isinstance(other, Person):
+            return self.name == other.name and self.age == other.age
+        return False
+person1 = Person("Alice", 30)
+person2 = Person("Alice", 30)
+print(person1)  # Output: Person(name=Alice, age=30)
+print(person1 == person2)  # Output: True
+```
+
+After using dataclass:
+
+```python
+from dataclasses import dataclass
+@dataclass
+class Person:
+    name: str
+    age: int
+person1 = Person("Alice", 30)
+person2 = Person("Alice", 30)
+print(person1)  # Output: Person(name='Alice', age=30)
+print(person1 == person2)  # Output: True
+```
+
+> Note: name and age are defined as instance variables not class variable in the dataclass, and the __init__, __repr__, and __eq__ methods are automatically generated based on these variables.
 
 
-## 13. Comparison with Other Languages (Not Supported in Python)
 
-### 13.1 Types of Inheritance in C++
+Using it to create simple shopping cart system:
+
+```python
+from dataclasses import dataclass
+@dataclass
+class cartItem:
+    name: str
+    price: float
+    quantity: int
+    def total_price(self):
+        return self.price * self.quantity
+item1 = cartItem("Laptop", 1000.0, 2)
+print(item1)  # Output: cartItem(name='Laptop', price=1000.0, quantity=2)
+print(item1.total_price())  # Output: 2000.0
+```
+
+## Abstract Method in Python And Abstract Base Class (ABC) in Python
+An abstract method is a method that is declared but does not contain any implementation (no method body). It only defines the method’s name, parameters, and expected behavior. The purpose of an abstract method is to ensure that all subclasses provide their own implementation of that method. In other words, it acts as a contract that derived classes must follow.
+
+In Python, an abstract method is defined using the @abstractmethod decorator. This decorator marks a method as abstract and prevents the parent class from being instantiated unless all abstract methods are implemented in subclasses.
+
+An abstract base class (ABC) is a class that contains one or more abstract methods. Such a class cannot be instantiated directly because it is intentionally incomplete. Instead, it serves as a blueprint or template for other classes.
+
+Any subclass that inherits from an abstract base class must implement all of its abstract methods. If a subclass does not implement them, it will also be treated as an abstract class and cannot be instantiated.
+
+In Python, abstract base classes are created using the built-in abc module, typically by:
+- Inheriting from ABC
+- Using the @abstractmethod decorator
+
+In Python, we can use the `abc` module to create abstract base classes and define abstract methods. Here's an example:
+
+```python
+from abc import ABC, abstractmethod
+class Shape(ABC):
+    @abstractmethod
+    def area(self):
+        pass
+    @abstractmethod
+    def perimeter(self):
+        pass
+class Rectangle(Shape):
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+    def area(self):
+        return self.width * self.height
+    def perimeter(self):
+        return 2 * (self.width + self.height)
+class Circle(Shape):
+    def __init__(self, radius):
+        self.radius = radius
+    def area(self):
+        return 3.14 * self.radius ** 2
+    def perimeter(self):
+        return 2 * 3.14 * self.radius
+
+rect = Rectangle(5, 3)
+print(f"Area: {rect.area()}")  # Output: Area: 15
+print(f"Perimeter: {rect.perimeter()}")  # Output: Perimeter: 16
+
+circle = Circle(4)
+print(f"Area: {circle.area()}")  # Output: Area: 50.24
+print(f"Perimeter: {circle.perimeter()}")  # Output: Perimeter: 25.12
+```
+
+Example of Payment System using ABC:
+
+```python
+from abc import ABC, abstractmethod
+class PaymentMethod(ABC):
+    @abstractmethod
+    def pay(self, amount):
+        pass
+class CreditCardPayment(PaymentMethod):
+    def pay(self, amount):
+        print(f"Paying {amount} using Credit Card")
+class PayPalPayment(PaymentMethod):
+    def pay(self, amount):
+        print(f"Paying {amount} using PayPal")
+payment1 = CreditCardPayment()
+payment1.pay(100)  # Output: Paying 100 using Credit Card
+payment2 = PayPalPayment()
+payment2.pay(200)  # Output: Paying 200 using PayPal
+```
+
+
+## 14. Comparison with Other Languages (Not Supported in Python)
+
+### 14.1 Types of Inheritance in C++
 
 Inheritance is a mechanism in which one class acquires the properties and behavior of another class. While Python has a more straightforward inheritance model, other languages like C++ offer more granular control over inheritance:
 
