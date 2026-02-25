@@ -418,26 +418,7 @@ When changing the name through `change_name_b()`, the first line `name = new_nam
 
 
 
-## 13. Comparison with Other Languages (Not Supported in Python)
 
-### 13.1 Types of Inheritance in C++
-
-Inheritance is a mechanism in which one class acquires the properties and behavior of another class. While Python has a more straightforward inheritance model, other languages like C++ offer more granular control over inheritance:
-
-- **Public Inheritance**: In public inheritance, the public members of the base class become public members of the derived class, and the protected members of the base class become protected members of the derived class.
-
-- **Protected Inheritance**: In protected inheritance, the public members of the base class become protected members of the derived class, and the protected members of the base class become protected members of the derived class while the private members of the base class is not inherited.
-
-- **Private Inheritance**: In private inheritance, the public members of the base class become private members of the derived class, and the protected members of the base class become private members of the derived class while the private members of the base class is not inherited.
-
-Table of Inheritance in C++:
-| Inheritance Type | Public Members | Protected Members | Private Members |
-|------------------|----------------|-------------------|-----------------|
-| Public Inheritance | Public          | Protected         | Not Inherited    |
-| Protected Inheritance | Protected     | Protected         | Not Inherited    |
-| Private Inheritance | Private        | Private          | Not Inherited    |
-
-This comparison helps understand the differences in how various languages implement OOP concepts.
 
 ### 13.2 Function overloading in C++
 Function overloading is a feature in C++ that allows multiple functions to have the same name but different parameters (either in type or number). This is not supported in Python, as Python does not support function overloading based on parameter types or counts. Instead, Python uses default arguments and variable-length arguments to achieve similar functionality.
