@@ -46,7 +46,7 @@ Asynchronous programming allows your program to handle multiple tasks concurrent
 
 ### 1.3.1 Event Loop Concept
 
-```
+```bash
 +----------------------+
 |      Event Loop      |
 |----------------------|
@@ -83,11 +83,11 @@ def main():
     print("End")
 
 main()
-```
+``` 
 
 Output takes ~3 seconds:
 
-```
+```bash
 Start
 data
 End
@@ -147,7 +147,7 @@ asyncio.run(main())
 
 **Expected Output (approximate order):**
 
-```
+```bash
 Hello Alice after 1s
 Hello Charlie after 1.5s
 Hello Bob after 2s
@@ -178,7 +178,7 @@ A coroutine is a special Python function defined with `async def` that can pause
 
 **Lifecycle of a Coroutine:**
 
-```
+```bash
 Created → Scheduled → Running → Done
 ```
 
@@ -197,7 +197,7 @@ An **awaitable** is any object that can be used with `await`. There are three ma
 
 **Flow Visualization:**
 
-```
+```bash
 +------------------+
 | async def foo()  |  <-- Coroutine (awaitable)
 +------------------+
@@ -281,7 +281,7 @@ asyncio.run(main())
 
 **Expected Output (timed order):**
 
-```
+```bash
 Hello Alice after 1s
 Hello Charlie after 1.5s
 Hello Bob after 2s
@@ -323,7 +323,7 @@ The event loop is the core of `asyncio`. It:
 
 ## 3.2 Event Loop Flow Visualization
 
-```
+```bash
           +-----------------------+
           |       Event Loop      |
           +-----------------------+
@@ -371,7 +371,7 @@ The event loop is the core of `asyncio`. It:
 
 The selector monitors multiple file descriptors (sockets, pipes) without blocking. When an event is ready, the corresponding coroutine is moved to the ready queue.
 
-```
+```bash
       OS Selector
 +-------------------------+
 | Monitors sockets/FDs    |
@@ -421,7 +421,7 @@ asyncio.run(main())
 
 **Expected Output:**
 
-```
+```bash
 Immediate callback
 Task A started
 Task B started
@@ -452,7 +452,7 @@ In asyncio, coroutines alone are awaitable objects but do not run independently 
 
 **Hierarchy:**
 
-```
+```bash
 Coroutine → Task → Future (result holder)
 ```
 
@@ -467,7 +467,7 @@ Coroutine → Task → Future (result holder)
 
 ### 4.2.1 Visualization
 
-```
+```bash
 +---------------------+
 | async def foo()     |
 |  Coroutine object   |
@@ -493,7 +493,7 @@ Coroutine → Task → Future (result holder)
 
 A Task transitions through several states during execution.
 
-```
+```bash
 Created → Scheduled → Running → Done / Cancelled
 ```
 
@@ -516,7 +516,7 @@ When you call `asyncio.create_task(coro())`, the coroutine is:
 
 **Full Scheduling Visualization:**
 
-```
+```bash
 Coroutine Created
         |
         v
@@ -579,7 +579,7 @@ asyncio.run(main())
 
 **Output:**
 
-```
+```bash
 Task scheduled
 Hello
 ```
@@ -608,7 +608,7 @@ asyncio.run(main())
 
 **Execution Order:**
 
-```
+```bash
 Task A started
 Task B started
 Task B finished
@@ -626,7 +626,7 @@ A Future represents a result that will be available later. Internally:
 
 **Future Visualization:**
 
-```
+```bash
 +--------------------+
 |     Future         |
 |--------------------|
@@ -672,14 +672,14 @@ asyncio.run(main())
 
 **Output:**
 
-```
+```bash
 Task started
 Task cancelled
 ```
 
 **Cancellation Flow:**
 
-```
+```bash
 Running Task
      |
 task.cancel()
@@ -738,7 +738,7 @@ asyncio.run(main())
 
 **Output:**
 
-```
+```bash
 Task 1 started
 Task 2 started
 Task 1 finished
@@ -790,7 +790,7 @@ asyncio.run(main())
 
 **Output (timed order):**
 
-```
+```bash
 A started
 B started
 A finished after 1s
@@ -822,7 +822,7 @@ asyncio.run(main())
 
 **Output:**
 
-```
+```bash
 Task timed out
 ```
 
@@ -861,7 +861,7 @@ asyncio.run(main())
 
 **Expected Output:**
 
-```
+```bash 
 Immediate callback executed
 Delayed callback executed
 ```
@@ -901,7 +901,7 @@ asyncio.run(main())
 
 **Task lifecycle (sequential):**
 
-```
+```bash
 Coroutine Created: task("A")
         |
         v
@@ -940,7 +940,7 @@ Next, task("B") created and follows the same lifecycle.
 
 **Output:**
 
-```
+```bash
 A started
 A finished
 B started
@@ -972,7 +972,7 @@ asyncio.run(main())
 
 **Task lifecycle (concurrent):**
 
-```
+```bash
 Coroutine Created: task("A"), task("B")
         |
         v
@@ -1022,7 +1022,7 @@ Task-B moves to scheduled queue
 
 **Output:**
 
-```
+```bash
 A started
 B started
 B finished
@@ -1057,7 +1057,7 @@ asyncio.run(main())
 
 **Output:**
 
-```
+```bash
 Fetching from API-1...
 Fetching from API-2...
 Fetching from API-3...
