@@ -46,24 +46,47 @@ Asynchronous programming allows your program to handle multiple tasks concurrent
 
 ### 1.3.1 Event Loop Concept
 
-```bash
-+----------------------+
-|      Event Loop      |
-|----------------------|
-|  Ready Queue         | <- Tasks ready to run
-|  Scheduled Queue     | <- Tasks waiting for timers/IO
-+----------------------+
-        |  ^
-        |  | schedule / complete
-        v  |
-  +-------------+
-  |  Coroutines | <- Tasks yield control with await
-  +-------------+
+```mermaid
+graph TD
+    %% Main Event Loop Container
+    subgraph Event_Loop ["Event Loop (The Engine)"]
+        direction TB
+        Ready["Ready Queue<br/>(Tasks ready to run)"]
+        Scheduled["Scheduled Queue<br/>(Waiting for IO/Timers)"]
+    end
+
+    %% The Execution Unit
+    Running((Running Coroutine))
+
+    %% Flow logic
+    Ready -- "Selected by Selector" --> Running
+    Running -- "await (yield control)" --> Scheduled
+    Scheduled -. "IO Ready / Timer Done" .-> Ready
+
+    %% Global Entry
+    New[New Task] --> Ready
+
+    %% Styling
+    style Event_Loop fill:#fdfdfd,stroke:#333,stroke-width:2px
+    style Running fill:#fff9c4,stroke:#fbc02d,stroke-width:3px
+    style Ready fill:#e8f5e9,stroke:#2e7d32
+    style Scheduled fill:#ffebee,stroke:#c62828
 ```
 
-- The event loop continuously checks the ready queue and scheduled queue.
-- When a coroutine `await`s an IO operation, it yields control to the loop.
-- The loop can run other ready tasks while waiting.
+There are 2 main queues:
+- Ready Queue: Tasks that can run immediately.
+- Scheduled Queue: Tasks waiting for an event (timer, IO) to complete.
+
+Generally What Happens is:
+1. Multiple coroutines are wrapped into Tasks and placed into the Ready Queue.
+2. The Event Loop uses a Selector to pull the next available task from the Ready Queue and executes it.
+3. The task run until it hits an `await` (yield point), at which it yields control back to the event loop and is moved to the Scheduled Queue if it's waiting for an IO event or timer.
+4. While the IO is pending, the Event Loop remains unblocked, selecting and running other tasks from the Ready Queue.
+5. When the scheduled event completes, the task is moved back to the ready queue and eventually runs again.
+6. This cycle continues until all tasks are complete.
+
+
+
 
 ### 1.3.2 Blocking vs Non-blocking Execution
 
@@ -75,23 +98,9 @@ import time
 def fetch_data():
     time.sleep(3)  # blocking wait
     return "data"
-
-def main():
-    print("Start")
-    result = fetch_data()
-    print(result)
-    print("End")
-
-main()
-``` 
-
-Output takes ~3 seconds:
-
-```bash
-Start
-data
-End
 ```
+
+Blocking Execution means that the program halts at the time.sleep(3) line and cannot do anything else until the sleep is over. This is inefficient for IO-bound tasks.
 
 **Non-blocking example (asynchronous):**
 
@@ -101,71 +110,18 @@ import asyncio
 async def fetch_data():
     await asyncio.sleep(3)  # non-blocking wait
     return "data"
-
-async def main():
-    print("Start")
-    result = await fetch_data()
-    print(result)
-    print("End")
-
-asyncio.run(main())
 ```
+Non-blocking Execution allows the event loop to run other tasks while waiting for the sleep to complete. This is efficient and allows for concurrency.
 
-**Flow:**
 
-1. `asyncio.run()` starts the event loop.
-2. `fetch_data()` awaits `asyncio.sleep(3)`.
-3. Event loop can run other tasks while waiting (no CPU wasted).
-
-## 1.4 Key Considerations
-
-- **Async is not parallelism:** Async handles concurrency for IO-bound tasks; CPU-heavy tasks still block unless offloaded to threads/processes.
-- **Do not mix blocking calls inside async:** Using `time.sleep()` blocks the event loop; always use `asyncio.sleep()`.
-- **Use Python 3.11+ features:** `asyncio.TaskGroup` for structured concurrency, precise cancellation, and error aggregation.
-- **Debugging tools:** `asyncio.run(main(), debug=True)` to detect slow tasks, forgotten awaits, or deadlocks.
-
-## 1.5 Example Exercise
-
-**Task:** Print messages asynchronously with different delays.
-
-```python
-import asyncio
-
-async def greet(name, delay):
-    await asyncio.sleep(delay)
-    print(f"Hello {name} after {delay}s")
-
-async def main():
-    await asyncio.gather(
-        greet("Alice", 1),
-        greet("Bob", 2),
-        greet("Charlie", 1.5)
-    )
-
-asyncio.run(main())
-```
-
-**Expected Output (approximate order):**
-
-```bash
-Hello Alice after 1s
-Hello Charlie after 1.5s
-Hello Bob after 2s
-```
-
-**Learning Points:**
-
-- `async def` defines a coroutine.
-- `await` pauses execution and lets the loop handle other tasks.
-- `asyncio.gather()` runs multiple coroutines concurrently.
-
----
 
 # Chapter 2 — Coroutines and Awaitables
 
 ## 2.1 What Are Coroutines?
 
-A coroutine is a special Python function defined with `async def` that can pause its execution at `await` points and let the event loop run other tasks. Coroutines are awaitable objects, meaning they can be used with `await` to retrieve results once complete.
+A coroutine is a specialized Python function defined with async def. Unlike standard functions that run to completion once called, a coroutine can pause its execution at await points, yielding control back to the event loop so other tasks can progress.
+
+Calling an async def function does not execute it immediately; instead, it returns a coroutine object that must be scheduled on the event loop to run.
 
 **Key differences from normal functions:**
 
@@ -177,140 +133,94 @@ A coroutine is a special Python function defined with `async def` that can pause
 | Control | Linear | Cooperative multitasking |
 
 **Lifecycle of a Coroutine:**
+**Created** :The coroutine is defined and called, but hasn't started (it's just an object).When you call an async function, it returns a coroutine object. This object represents the coroutine but does not execute it yet.
 
-```bash
-Created → Scheduled → Running → Done
+**Ready** :The coroutine is scheduled to run (e.g., via `asyncio.create_task()`) and is in the ready queue, waiting for the event loop to pick it for execution.
+
+**Running** :The event loop starts executing the coroutine. It runs until it hits an `await` expression, at which point it yields control back to the event loop.
+
+**Suspended** :When the coroutine hits an `await`, it is suspended and moved to the scheduled queue, waiting for the awaited operation (like IO or a timer) to complete.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Created : async_func() called
+    
+    Created --> Ready : asyncio.create_task()
+    note right of Created
+        Coroutine object exists 
+        but is not executing yet.
+    end note
+
+    Ready --> Running : Loop selects task
+    note left of Ready
+        Task sits in the 
+        Ready Queue.
+    end note
+
+    Running --> Suspended : Encounters 'await'
+    note right of Running
+        Actively executing 
+        on the CPU.
+    end note
+
+    Suspended --> Ready : IO/Timer completes
+    note left of Suspended
+        Task sits in the 
+        Scheduled Queue.
+    end note
+
+    Running --> Done : Final return
+    Done --> [*]
+
+    style Running fill:#fff9c4,stroke:#fbc02d
+    style Ready fill:#e8f5e9,stroke:#2e7d32
+    style Suspended fill:#ffebee,stroke:#c62828
 ```
 
-- **Created:** Defined by `async def` but not yet awaited.
-- **Scheduled:** Placed on the event loop (e.g., via `asyncio.create_task()`).
-- **Running:** Actively executing until next `await` or completion.
-- **Done:** Finished execution or raised exception.
 
 ## 2.2 Awaitables
 
 An **awaitable** is any object that can be used with `await`. There are three main types:
 
-1. **Coroutines** (`async def` functions)
-2. **Tasks** (created from coroutines via `asyncio.create_task()` or `asyncio.ensure_future()`)
-3. **Futures** (`asyncio.Future`) — low-level placeholders for results that will be available later
+1. **Coroutines** : Functions defined with async 
+2. **Tasks** : High-level wrappers used to schedule coroutines concurrently.
+3. **Futures**: : Low-level objects representing an eventual result of an asynchronous operation.(Wont be covered in this blog)
 
-**Flow Visualization:**
 
-```bash
-+------------------+
-| async def foo()  |  <-- Coroutine (awaitable)
-+------------------+
-        |
-        v
-+------------------+
-| await foo()      |  <-- yields control to event loop
-+------------------+
-        |
-        v
-+------------------+
-| Event Loop       |  <-- schedules other ready tasks
-+------------------+
-```
+## 2.3 Chaining Coroutines
 
-## 2.3 Nested Coroutines and Chaining Awaits
-
-Coroutines can call other coroutines. Control returns to the event loop whenever `await` is hit.
+Coroutines can call and wait for other coroutines, creating a chain of execution. Control is only returned to the event loop when the innermost await hits a non-blocking operation (like a timer or network socket).
 
 ```python
 import asyncio
 
 async def fetch_data():
-    await asyncio.sleep(2)
-    return "Data"
+    await asyncio.sleep(2)  # Yields control to loop
+    return "Data Received"
 
 async def process_data():
-    data = await fetch_data()  # await another coroutine
-    print(f"Processed {data}")
+    print("Fetching...")
+    # Chains to fetch_data; process_data suspends here
+    data = await fetch_data() 
+    print(f"Result: {data}")
 
-async def main():
-    await process_data()
-
-asyncio.run(main())
+asyncio.run(process_data())
 ```
 
-**Flow:**
+## 2.4 Conclusion
+In this chapter's examples, we are not using asyncio.create_task(). Because we are awaiting one by one, the Ready Queue usually only has one task in it at a time which is asyncio.run(coro) .This mean when the coroutine hits an await, it yields control back to the event loop and is moved to the Scheduled Queue. Since there are no other tasks in the Ready Queue, the event loop simply waits for the awaited operation to complete before resuming the same coroutine. This results in sequential execution, where each coroutine runs to completion before the next one starts.
 
-1. `main()` awaits `process_data()`.
-2. `process_data()` awaits `fetch_data()`.
-3. `fetch_data()` hits `asyncio.sleep(2)` — yields control.
-4. Event loop executes other tasks (if any) during sleep.
-5. After 2s, resumes execution and prints `Processed Data`.
-
-## 2.4 Difference Between Generators and Coroutines
-
-| Feature | Generator (`yield`) | Coroutine (`async def`, `await`) |
-|---|---|---|
-| Purpose | Produce values lazily | Pause and resume execution |
-| Return Type | Iterator | Coroutine object (awaitable) |
-| Scheduling | Manual iteration | Event loop manages execution |
-| Control Yielded | Value | Control to event loop |
-
-> **Key:** Generators produce data, coroutines yield control.
-
-## 2.5 Practical Example
-
-**Task:** Print multiple messages with delays using nested coroutines.
-
-```python
-import asyncio
-
-async def greet(name, delay):
-    await asyncio.sleep(delay)
-    print(f"Hello {name} after {delay}s")
-
-async def welcome_team():
-    await greet("Alice", 1)
-    await greet("Bob", 2)
-
-async def main():
-    # run concurrently
-    task1 = asyncio.create_task(welcome_team())
-    task2 = asyncio.create_task(greet("Charlie", 1.5))
-
-    await task1
-    await task2
-
-asyncio.run(main())
-```
-
-**Expected Output (timed order):**
-
-```bash
-Hello Alice after 1s
-Hello Charlie after 1.5s
-Hello Bob after 2s
-```
-
-**Observations:**
-
-- Tasks run concurrently with the event loop handling the scheduling.
-- Nested coroutines (`welcome_team`) allow sequential chaining inside concurrent execution.
-
-## 2.6 Important Considerations
-
-- **Always `await` coroutines:** Forgetting `await` just creates a coroutine object; it won't execute.
-- **Do not block inside coroutines:** Avoid `time.sleep()`, `file.read()`, etc. Use `asyncio` equivalents.
-- **Tasks vs coroutines:** Wrapping coroutines with `asyncio.create_task()` schedules them independently; just awaiting runs them sequentially.
-- **Exceptions propagate:** Unhandled exceptions in awaited coroutines will bubble up unless caught with `try/except`.
-- **Python 3.11+ improvements:** `asyncio.TaskGroup` can run multiple coroutines safely, cancel together, and collect exceptions in a structured way.
-
----
+**Note** : To run coroutine it must be awaited or scheduled as a task. If you just call an async function without awaiting it or scheduling it, it will not execute and will simply return a coroutine object. This is a common mistake when starting with asyncio, but it's important to remember that coroutines need to be properly scheduled to run.
 
 # Chapter 3 — Event Loop Essentials
 
 ## 3.1 What Is the Event Loop?
+The Event Loop is the core of asyncio. Think of it as a central manager or a "Conductor" of an orchestra. While Python usually runs one line of code at a time (single-threaded), the Event Loop allows it to handle many tasks by switching between them whenever one hits a "waiting" period.
 
-The event loop is the core of `asyncio`. It:
-
-- Schedules and runs coroutines
-- Handles IO events, timers, and callbacks
-- Operates in a single thread, but can efficiently manage thousands of concurrent tasks
+***Key Responsibilities of the Event Loop:***
+- **Scheduling**: Manages when courotines among the ready queue get to run.
+- **I/O Handling**: Communicates with the Operating System to check if network data has arrived.
+- **Timer Management**: Keeps track of timeouts and scheduled callbacks.
 
 **Components:**
 
@@ -318,244 +228,124 @@ The event loop is the core of `asyncio`. It:
 |---|---|
 | Ready Queue | Coroutines ready to execute immediately |
 | Scheduled Queue | Coroutines waiting for timers/IO events |
-| Callbacks | Functions scheduled with `call_soon`, `call_later`, or `call_at` |
 | Selector/Poller | Monitors OS-level events (epoll/kqueue/IOCP) |
 
 ## 3.2 Event Loop Flow Visualization
 
-```bash
-          +-----------------------+
-          |       Event Loop      |
-          +-----------------------+
-                  |
-      +-----------+------------+
-      |                        |
-  Ready Queue               Scheduled Queue
-      |                        |
-      v                        v
- +-----------+          +----------------+
- | Task/Coro |          | IO / Timer Exp |
- +-----------+          +----------------+
-      |                        |
-      +-----------+------------+
-                  |
-               Execute
-                  |
-         Check for new ready tasks
-                  |
-               Repeat
+```mermaid
+graph TD
+    %% Main Engine Container
+    subgraph Event_Loop ["The Event Loop Engine (Single Threaded)"]
+        direction TB
+        
+        %% Step 1: Selection Logic
+        Selector["<b>1. OS Selector / Poller</b><br/>(epoll / kqueue / IOCP)<br/>Checks for finished IO & Timers"]
+        
+        %% The Queues
+        subgraph Internal_Queues ["Queue Management"]
+            direction LR
+            Ready["<b>Ready Queue</b><br/>Tasks waiting for CPU"]
+            Scheduled["<b>Scheduled Queue</b><br/>Tasks waiting for IO/Sleep"]
+        end
+        
+        %% Step 2: Execution
+        Running((<b>2. Execution</b><br/>Running Coroutine))
+        
+        %% Connections inside the loop
+        Selector -->|Move finished tasks| Ready
+        Ready -->|Loop picks next task| Running
+        Running -->|Hits 'await'| Scheduled
+        Scheduled -.->|Wait for signal| Selector
+    end
+
+    %% External Entry/Exit
+    New[New Task / create_task] --> Ready
+    Running -->|Task complete| Done((Done))
+
+    %% Styling
+    style Event_Loop fill:#fdfdfd,stroke:#333,stroke-width:2px
+    style Running fill:#fff9c4,stroke:#fbc02d,stroke-width:3px
+    style Ready fill:#e8f5e9,stroke:#2e7d32
+    style Scheduled fill:#ffebee,stroke:#c62828
+    style Selector fill:#e1f5fe,stroke:#01579b
+    
 ```
 
 **Execution Flow:**
 
-1. Poll ready tasks or IO events
-2. Run tasks until `await`
-3. Move waiting tasks to scheduled queue
-4. Execute callbacks (`call_soon`, `call_later`)
-5. Repeat until all tasks complete
+1. **Task Insertion**: When you create a new task (e.g., via `asyncio.create_task()`), it is placed into the Ready Queue.
+2. **Selector Step**: The loop asks the OS (using epoll, kqueue, or IOCP): "Has any IO finished or have any timers (like asyncio.sleep) expired?". if yes, those tasks are moved from the Scheduled Queue to the Ready Queue.
+3. **The Execution Step**: The loop looks at the Ready Queue. It picks the first task in line and moves it to the Running state. This is where your actual Python code executes on the CPU.
+4. **The Yield Point (await)**:The code runs until it hits an await. At this point, the task yields control. It saves its local variables and moves to the Scheduled Queue.
+6.  **Repeat**: Repeat steps 2-4 until all tasks are complete.
 
-## 3.3 Modern Loop APIs (Python 3.11+)
 
-- Always use `asyncio.run()`.
-- Schedule coroutines as tasks: `asyncio.create_task(coro)`
-- Schedule callbacks inside a coroutine: `loop = asyncio.get_running_loop()` then `loop.call_soon()` / `loop.call_later()`
-- **Deprecated:** `get_event_loop()`, `run_until_complete()`, `run_forever()` should not be used.
 
-## 3.4 Selector Internals (OS-level IO Multiplexing)
-
-| OS | Mechanism |
-|---|---|
-| Linux | `epoll` |
-| macOS | `kqueue` |
-| Windows | `IOCP` |
-
-The selector monitors multiple file descriptors (sockets, pipes) without blocking. When an event is ready, the corresponding coroutine is moved to the ready queue.
-
-```bash
-      OS Selector
-+-------------------------+
-| Monitors sockets/FDs    |
-| Notifies loop on events |
-+-------------------------+
-        |
-        v
-  Ready Queue in Event Loop
-```
-
-## 3.5 Task Execution
-
-**Step-by-step Execution in Modern Python:**
-
-1. Ready tasks run until next `await`
-2. Waiting tasks move to scheduled queue
-3. Execute callbacks (`call_soon`, `call_later`)
-4. Poll OS-level IO events
-5. Repeat until all tasks complete
-
-## 3.6 Example: Scheduling Coroutines and Callbacks
+## 3.3 Creating and Running the Event Loop
+In most cases, you don't need to manually create or manage the event loop. The `asyncio.run()` function acts as a high-level entry point that handles the entire lifecycle: it creates a new event loop, runs your main coroutine until completion, and closes the loop once finished.
 
 ```python
 import asyncio
-
-async def task(name, delay):
-    print(f"{name} started")
-    await asyncio.sleep(delay)
-    print(f"{name} finished after {delay}s")
-
 async def main():
-    # Access the currently running loop
-    loop = asyncio.get_running_loop()
-
-    # Schedule callbacks
-    loop.call_soon(lambda: print("Immediate callback"))
-    loop.call_later(1, lambda: print("Delayed callback (1s)"))
-
-    # Run multiple coroutines concurrently
-    await asyncio.gather(
-        task("Task A", 2),
-        task("Task B", 1),
-    )
-
+    print("Hello, Asyncio!")
 asyncio.run(main())
 ```
 
-**Expected Output:**
+> Note: Event loop run until all tasks are complete. If you create tasks that never finish (e.g., infinite loops or un-awaited coroutines), the event loop will run indefinitely, which can lead to resource leaks or unresponsive programs. Always ensure that your tasks have a clear exit condition or are properly cancelled when no longer needed.
 
-```bash
-Immediate callback
-Task A started
-Task B started
-Delayed callback (1s)
-Task B finished after 1s
-Task A finished after 2s
-```
-
-## 3.7 Important Considerations
-
-- **Single-threaded:** CPU-heavy tasks block other coroutines.
-- **Non-blocking only:** Avoid blocking calls like `time.sleep()`.
-- **Callbacks vs coroutines:** `call_soon` / `call_later` run plain functions, not coroutines.
-- **Debugging:** Use `loop.set_debug(True)` inside `asyncio.run()` for slow tasks or scheduling issues.
-- **Task management:** Use `asyncio.create_task()` for concurrency, `asyncio.gather()` to wait for multiple tasks.
 
 
 ---
 
-# Chapter 4 — Tasks and Futures
+# Chapter 4 — Tasks 
 
 ## 4.1 Overview
+In `asyncio`, a Task is a wrapper for a coroutine that schedules it to run on the event loop independently. While a coroutine is just a "blueprint," a Task is the "active instance" that the event loop manages and executes. Tasks allow you to run multiple coroutines concurrently without blocking each other.
 
-In asyncio, coroutines alone are awaitable objects but do not run independently unless awaited. To allow a coroutine to execute concurrently within the event loop, it must be wrapped into a Task.
 
-- A **Task** represents a coroutine scheduled for execution by the event loop.
-- A **Future** is a lower-level abstraction that represents a result that will be available later.
 
-**Hierarchy:**
 
-```bash
-Coroutine → Task → Future (result holder)
-```
-
-## 4.2 Coroutine vs Task vs Future
+## 4.2 Coroutine vs Task
 
 | Concept | Description |
 |---|---|
 | Coroutine | Async function (`async def`) that yields control with `await` |
 | Task | Coroutine scheduled for execution in the event loop |
-| Future | Placeholder object for a result not yet available |
-| Awaitable | Any object usable with `await` (coroutines, tasks, futures) |
 
 ### 4.2.1 Visualization
 
-```bash
-+---------------------+
-| async def foo()     |
-|  Coroutine object   |
-+----------+----------+
-           |
-           | asyncio.create_task()
-           v
-+---------------------+
-|       Task          |
-| Scheduled coroutine |
-+----------+----------+
-           |
-           v
-+---------------------+
-|       Future        |
-| Holds result/exception |
-+---------------------+
+```mermaid
+stateDiagram-v2
+    direction LR
+
+    state "Ready" as Ready
+    state "Running" as Running
+    state "Done" as Done
+    state "Cancelled" as Cancelled
+
+    [*] --> Ready : asyncio.create_task()
+    Ready --> Running : Loop selects task
+    Running --> Ready : await (Yield)
+    Running --> Done : Task finishes
+    Running --> Cancelled : task.cancel()
+    Ready --> Cancelled : task.cancel()
+    Done --> [*]
+    Cancelled --> [*]
+
+    style Running fill:#fff9c4,stroke:#fbc02d
+    style Ready fill:#e8f5e9,stroke:#2e7d32
+    style Cancelled fill:#ffebee,stroke:#c62828
 ```
 
-> **Key Insight:** Every Task is a Future, but not every Future is a Task.
+Here 
+- **Ready** means the task is waiting to be picked by the event loop for execution. 
+- **Running** means the task is currently executing on the CPU.
+- **Done** means the task has completed successfully or with an exception. 
+- **Cancelled** means the task was cancelled before it could complete.
 
-## 4.3 Task Lifecycle
 
-A Task transitions through several states during execution.
-
-```bash
-Created → Scheduled → Running → Done / Cancelled
-```
-
-**State Breakdown:**
-
-| State | Meaning |
-|---|---|
-| Pending | Created but not yet executed |
-| Running | Currently executing |
-| Done | Completed successfully or raised exception |
-| Cancelled | Explicitly cancelled |
-
-## 4.4 Task Scheduling and Queues
-
-When you call `asyncio.create_task(coro())`, the coroutine is:
-
-1. Wrapped into a Task
-2. Added to the ready queue
-3. Picked by the event loop for execution
-
-**Full Scheduling Visualization:**
-
-```bash
-Coroutine Created
-        |
-        v
-asyncio.create_task()
-        |
-        v
-+-------------------+
-|   Ready Queue     |  <- Ready to execute immediately
-+---------+---------+
-          |
-          v
-     Event Loop Executes
-          |
-     Runs until await
-          |
-          v
-+-------------------+
-| Scheduled Queue   |  <- Waiting for IO / sleep / await
-+---------+---------+
-          |
-          | Await completes
-          v
-+-------------------+
-|   Ready Queue     |  <- Re-scheduled automatically
-+-------------------+
-          |
-          v
-       Running
-          |
-     +----+----+
-     |         |
-   Done    Cancelled
-```
-
-> When an awaited operation completes, the transition from Scheduled queue to Ready queue happens automatically — this is handled internally by the event loop.
-
-## 4.5 Creating Tasks
-
-### 4.5.1 Modern API (Python 3.7+)
+## 4.3 Creating Tasks
+To run multiple things at once, you use asyncio.create_task(). This is the key to concurrency.While we call `asyncio.create_task()`, the coroutine is wrapped in a Task and immediately placed into the ready queue. This means the event loop can start running it right away, even before you await anything.
 
 Use `asyncio.create_task(coro())` to schedule a coroutine immediately.
 
@@ -570,82 +360,85 @@ async def say_hello():
 
 async def main():
     task = asyncio.create_task(say_hello())
-    print("Task scheduled")
-    result = await task
-    print(result)
-
+    task1 = asyncio.create_task(say_hello())
+    tasks2 = asyncio.create_task(say_hello())
+    print("Tasks created, doing other work...")
+    # Do other stuff here while tasks run concurrently
+    print("Doing other work...")
+    # Now we can await the tasks to get their results
+    result1 = await task
+    result2 = await task1
+    result3 = await tasks2
+    print(result1, result2, result3)
 asyncio.run(main())
 ```
 
-**Output:**
 
-```bash
-Task scheduled
-Hello
+```mermaid
+graph LR
+    %% Step 1: Initialization
+    subgraph Step_1 [Step 1: Tasks Created]
+        direction TB
+        MAIN_TASK[Task: main]
+        CT1[Task: T1]
+        CT2[Task: T2]
+        CT3[Task: T3]
+    end
+
+    %% Step 2: The Queue Container
+    subgraph Ready_Queue [Step 2: Ready Queue]
+        direction LR
+        Q_MAIN((main))
+        Q1((T1))
+        Q2((T2))
+        Q3((T3))
+    end
+
+    %% Step 3: The Engine
+    subgraph Execution [Step 3: Event Loop Engine]
+        CPU{Selector}
+        Running[Running State]
+    end
+
+    %% Step 4: The Waiting Area
+    subgraph Waiting_Room [Step 4: Scheduled Room]
+        Sleep[asyncio.sleep]
+    end
+
+    %% Flow Arrows
+    MAIN_TASK -->|1. asyncio.run| Q_MAIN
+    CT1 -->|2. create_task| Q1
+    CT2 -->|3. create_task| Q2
+    CT3 -->|4. create_task| Q3
+
+    %% Selection Logic
+    Q_MAIN -->|5. Loop Pulls| CPU
+    Q1 -.->|7. Loop Pulls| CPU
+    Q2 -.->|8. Loop Pulls| CPU
+    Q3 -.->|9. Loop Pulls| CPU
+
+    CPU --> Running
+    Running -->|6. Hits await| Sleep
+    
+    %% Return Logic
+    Sleep -.->|1s later| Q1
+    Sleep -.->|1s later| Q2
+    Sleep -.->|1s later| Q3
+    Q1 -.->|T1 Finishes| Q_MAIN
 ```
 
-## 4.6 Running Concurrent Tasks
+Whats happen here is:
+1. We create three tasks using `asyncio.create_task()`, which immediately places them into the Ready Queue.
+2. The main coroutine hits an `await` and yields control, allowing the event loop to start executing tasks from the Ready Queue.
+3. The event loop picks the first task (Task 1) and runs it until it hits `await asyncio.sleep(1)`, at which point it yields control again and moves Task 1 to the Scheduled Queue.
+4. The event loop then picks the next task (Task 2) and runs it until it also hits `await asyncio.sleep(1)`, yielding control and moving Task 2 to the Scheduled Queue.
+5. The event loop continues to pick tasks from the Ready Queue (Task 3) and runs it until it hits `await asyncio.sleep(1)`, yielding control and moving Task 3 to the Scheduled Queue.
+6. After 1 second, the timers for Task 1, Task 2, and Task 3 "ding," and they are moved back to the Ready Queue.
+7. The event loop picks each task in turn, runs it to completion, and the results are printed.
 
-Tasks enable true async concurrency in a single-threaded event loop.
 
-```python
-import asyncio
-
-async def worker(name, delay):
-    print(f"{name} started")
-    await asyncio.sleep(delay)
-    print(f"{name} finished")
-
-async def main():
-    t1 = asyncio.create_task(worker("Task A", 2))
-    t2 = asyncio.create_task(worker("Task B", 1))
-
-    await t1
-    await t2
-
-asyncio.run(main())
-```
-
-**Execution Order:**
-
-```bash
-Task A started
-Task B started
-Task B finished
-Task A finished
-```
-
-Both tasks run concurrently despite sequential awaits.
-
-## 4.7 Futures Explained
-
-A Future represents a result that will be available later. Internally:
-
-- Tasks store results in a Future-like container.
-- Futures are heavily used in low-level asyncio APIs.
-
-**Future Visualization:**
-
-```bash
-+--------------------+
-|     Future         |
-|--------------------|
-| result()           |
-| exception()        |
-| done()             |
-+--------------------+
-```
-
-**Common Future Methods:**
-
-| Method | Description |
-|---|---|
-| `done()` | Check completion |
-| `result()` | Get result (if finished) |
-| `exception()` | Get raised exception |
-
+  
 ## 4.8 Cancellation
-
 Tasks can be cancelled explicitly using `task.cancel()`. Cancellation raises `asyncio.CancelledError` at the next `await` point.
 
 **Example:**
@@ -670,27 +463,6 @@ async def main():
 asyncio.run(main())
 ```
 
-**Output:**
-
-```bash
-Task started
-Task cancelled
-```
-
-**Cancellation Flow:**
-
-```bash
-Running Task
-     |
-task.cancel()
-     |
-     v
-CancelledError injected at next await
-     |
-Coroutine handles cleanup
-     |
-Task marked Cancelled
-```
 
 ## 4.9 Awaiting Task Results
 
@@ -701,6 +473,8 @@ You can retrieve results in two ways.
 ```python
 result = await task
 ```
+This waits for the task to complete and returns the result.if the task is not done yet, it will suspend the current coroutine until the task finishes. If the task raises an exception, it will be propagated here.
+
 
 **2. Direct access (only when done):**
 
@@ -711,372 +485,14 @@ if task.done():
 
 > **Note:** Calling `task.result()` before the task is done raises `InvalidStateError`.
 
-## 4.10 Example — Multiple Tasks with Cancellation
 
-```python
-import asyncio
-
-async def worker(name, delay):
-    try:
-        print(f"{name} started")
-        await asyncio.sleep(delay)
-        print(f"{name} finished")
-    except asyncio.CancelledError:
-        print(f"{name} cancelled")
-
-async def main():
-    task1 = asyncio.create_task(worker("Task 1", 3))
-    task2 = asyncio.create_task(worker("Task 2", 5))
-
-    await asyncio.sleep(1)
-    task2.cancel()
-
-    await asyncio.gather(task1, task2, return_exceptions=True)
-
-asyncio.run(main())
-```
-
-**Output:**
-
-```bash
-Task 1 started
-Task 2 started
-Task 1 finished
-Task 2 cancelled
-```
-
-## 4.11 Important Considerations
-
-- **Tasks enable concurrency:** Without `create_task`, coroutines execute sequentially.
-- **Always handle cancellation:** Use `try/except asyncio.CancelledError` for cleanup.
-- **Tasks reschedule automatically:** When awaited events complete, the transition `Scheduled → Ready → Running` happens internally — you never manually move tasks between queues.
-- **Avoid orphan tasks:** Un-awaited background tasks may leak exceptions or produce unpredictable behavior. Use structured concurrency (`TaskGroup` in Python 3.11+).
-- **Single-threaded scheduling:** Tasks are concurrent, not parallel. CPU-heavy work still blocks the event loop.
-> Note:Note: When you use async and await without asyncio.create_task(), you are not creating concurrent tasks. In this case, there is only one coroutine in the event loop’s ready queue. The loop will run this coroutine until it hits an await, at which point it pauses execution until the awaited operation completes. Since there are no other tasks to run, the event loop simply waits for the operation to finish before resuming the same coroutine.
-
-> Note: In contrast, if you use asyncio.create_task() to schedule multiple coroutines, all of them are placed in the ready queue together. The event loop can then switch between coroutines whenever they reach an await, enabling true concurrency.
+## 4.10 Some Thing You SHould Know
+When we create asyncio.run(coro()) it create one task and put it in ready queue,and create_task() also create one task and put it in ready queue such that when the asyncio.run() halts at the first await, the event loop can pick the task created by create_task() and run it concurrently. This is how we achieve concurrency in asyncio. If we didn't use create_task() and just awaited the coroutine directly, we would not have any other tasks in the ready queue to run while waiting, resulting in sequential execution.
 
 
 ---
 
-# Chapter 5 — Scheduling and Timing
 
-## 5.1 What Is Scheduling in Asyncio?
-
-Scheduling determines when and in what order coroutines or callbacks execute within the event loop. Asyncio allows fine-grained control for delays, timeouts, and periodic execution without blocking the event loop.
-
-> **Key concept:** Tasks can be **ready** (run immediately) or **scheduled** (run after a delay or IO event).
-
-## 5.2 Non-Blocking Delays
-
-Use `asyncio.sleep(seconds)` instead of `time.sleep()` to pause without blocking the event loop.
-
-```python
-import asyncio
-
-async def task(name, delay):
-    print(f"{name} started")
-    await asyncio.sleep(delay)
-    print(f"{name} finished after {delay}s")
-
-async def main():
-    await asyncio.gather(
-        task("A", 1),
-        task("B", 2),
-    )
-
-asyncio.run(main())
-```
-
-**Output (timed order):**
-
-```bash
-A started
-B started
-A finished after 1s
-B finished after 2s
-```
-
-> **Observation:** The event loop executes other tasks while waiting, enabling concurrency.
-
-## 5.3 Timeout Control
-
-`asyncio.wait_for(coro, timeout)` limits the maximum time a coroutine can run. Raises `asyncio.TimeoutError` if the timeout is exceeded.
-
-```python
-import asyncio
-
-async def slow_task():
-    await asyncio.sleep(5)
-    return "Done"
-
-async def main():
-    try:
-        result = await asyncio.wait_for(slow_task(), timeout=2)
-        print(result)
-    except asyncio.TimeoutError:
-        print("Task timed out")
-
-asyncio.run(main())
-```
-
-**Output:**
-
-```bash
-Task timed out
-```
-
-> **Key Consideration:** Use `wait_for` for long-running network requests or polling to avoid hanging tasks.
-
-## 5.4 Callback Scheduling
-
-Asyncio allows scheduling plain callbacks in addition to coroutines:
-
-| Method | Description |
-|---|---|
-| `loop.call_soon(callback)` | Execute callback as soon as the current task yields |
-| `loop.call_later(delay, callback)` | Execute callback after a fixed delay |
-| `loop.call_at(when, callback)` | Execute callback at a specific loop time (`loop.time() + delay`) |
-
-**Example:**
-
-```python
-import asyncio
-
-def immediate():
-    print("Immediate callback executed")
-
-def delayed():
-    print("Delayed callback executed")
-
-async def main():
-    loop = asyncio.get_running_loop()
-    loop.call_soon(immediate)
-    loop.call_later(1, delayed)
-
-    await asyncio.sleep(2)  # let callbacks execute
-
-asyncio.run(main())
-```
-
-**Expected Output:**
-
-```bash 
-Immediate callback executed
-Delayed callback executed
-```
-
----
-
-# Chapter 6 — Running Multiple Coroutines
-
-## 6.1 Overview
-
-`asyncio.gather()` allows running multiple coroutines concurrently and collecting their results. It internally schedules coroutines as tasks and lets the event loop interleave their execution whenever they hit `await`.
-
-| Tool | Purpose |
-|---|---|
-| `asyncio.gather()` | Run coroutines concurrently and collect all results |
-
-## 6.2 Sequential vs Concurrent Execution
-
-### 6.2.1 Sequential Execution (Await One by One)
-
-When `await` is used on each coroutine in sequence, the next coroutine starts only after the previous one finishes.
-
-```python
-import asyncio
-
-async def task(name, delay):
-    print(f"{name} started")
-    await asyncio.sleep(delay)
-    print(f"{name} finished")
-
-async def main():
-    await task("A", 2)
-    await task("B", 1)
-
-asyncio.run(main())
-```
-
-**Task lifecycle (sequential):**
-
-```bash
-Coroutine Created: task("A")
-        |
-        v
-asyncio.await() called
-        |
-        v
-+-------------------+
-|   Ready Queue     |  <- Only task("A") ready
-+---------+---------+
-          |
-          v
-     Event Loop Executes
-          |
-     Runs until await asyncio.sleep(2)
-          |
-          v
-+-------------------+
-| Scheduled Queue   |  <- Waiting 2s
-+---------+---------+
-          |
-          | Sleep completes
-          v
-+-------------------+
-|   Ready Queue     |  <- Resumed task("A")
-+---------+---------+
-          |
-          v
-       Running
-          |
-     +----+----+
-     |         |
-   Done    Cancelled
-
-Next, task("B") created and follows the same lifecycle.
-```
-
-**Output:**
-
-```bash
-A started
-A finished
-B started
-B finished
-```
-
-> **Total time: ~3 seconds** (tasks run sequentially). Sequential execution wastes concurrency; the ready queue is empty while waiting.
-
-### 6.2.2 Concurrent Execution with `asyncio.gather()`
-
-`asyncio.gather()` schedules all coroutines immediately as tasks. Each can run until it hits `await`, then yields control, letting other tasks execute.
-
-```python
-import asyncio
-
-async def task(name, delay):
-    print(f"{name} started")
-    await asyncio.sleep(delay)
-    print(f"{name} finished")
-
-async def main():
-    await asyncio.gather(
-        task("A", 2),
-        task("B", 1),
-    )
-
-asyncio.run(main())
-```
-
-**Task lifecycle (concurrent):**
-
-```bash
-Coroutine Created: task("A"), task("B")
-        |
-        v
-asyncio.create_task() for each
-        |
-        v
-+-------------------+
-|   Ready Queue     |  <- Task-A, Task-B ready
-+---------+---------+
-          |
-          v
-     Event Loop Executes
-          |
-Task-A runs → hits await asyncio.sleep(2)
-Task-A moves to scheduled queue
-Task-B runs → hits await asyncio.sleep(1)
-Task-B moves to scheduled queue
-          |
-          v
-+-------------------+
-| Scheduled Queue   |  <- Task-A (2s), Task-B (1s)
-+---------+---------+
-          |
-          | Sleep completes for Task-B
-          v
-+-------------------+
-|   Ready Queue     |  <- Task-B rescheduled
-+---------+---------+
-          |
-          v
-       Running Task-B → Done
-          |
-          v
-+-------------------+
-| Scheduled Queue   |  <- Task-A remaining
-+---------+---------+
-          |
-          | Sleep completes for Task-A
-          v
-+-------------------+
-|   Ready Queue     |  <- Task-A rescheduled
-+---------+---------+
-          |
-          v
-       Running Task-A → Done
-```
-
-**Output:**
-
-```bash
-A started
-B started
-B finished
-A finished
-```
-
-> **Total time: ~2 seconds** (tasks overlap — only the longest delay matters). The ready queue never sits idle while there are scheduled tasks; this is true asyncio concurrency.
-
-## 6.3 `asyncio.gather()` — Result Collection
-
-Results are returned in **input order**, even if tasks finish out of order. Use this when tasks are independent but you want all results together.
-
-```python
-import asyncio
-
-async def fetch_data(source, delay):
-    print(f"Fetching from {source}...")
-    await asyncio.sleep(delay)
-    return f"Data from {source}"
-
-async def main():
-    results = await asyncio.gather(
-        fetch_data("API-1", 2),
-        fetch_data("API-2", 1),
-        fetch_data("API-3", 3),
-    )
-    for r in results:
-        print(r)
-
-asyncio.run(main())
-```
-
-**Output:**
-
-```bash
-Fetching from API-1...
-Fetching from API-2...
-Fetching from API-3...
-Data from API-1
-Data from API-2
-Data from API-3
-```
-
-> **Total time: ~3 seconds** (tasks overlap; longest sleep dominates).
-
-**Comparison Table:**
-
-| Approach | Total Time | Use When |
-|---|---|---|
-| Sequential (`await` each) | Sum of all delays | Tasks depend on each other |
-| Concurrent (`gather`) | Max of all delays | Tasks are independent |
-
-
-> Note:When you use asyncio.create_task(), the coroutine is wrapped in a Task and immediately placed into the ready queue. This means the event loop can start running it right away, even before you await anything.In contrast, when you pass coroutines to asyncio.gather() without awaiting it, they are not yet scheduled. They remain inactive and are not in the ready queue.Only when you await gather() does the event loop schedule all the coroutines passed to gather(). At this point, they are placed into the ready queue simultaneously, allowing the event loop to execute them concurrently.
 
 # Chapter 7- Lock,Semaphores
 
