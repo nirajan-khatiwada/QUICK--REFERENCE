@@ -1,16 +1,17 @@
 ---
-title: "Asyncio Day 2: Coroutines, Tasks & Synchronization"
-slug: "python-asyncio-day-2-coroutines-tasks-locks"
+title: "Python Asyncio: Complete Guide to Coroutines, Tasks, Event Loop & Synchronization"
+slug: "python-asyncio-coroutines-tasks-locks-semaphores"
 date: 2024-11-22
-description: "Learn to write concurrent Python code with Coroutines, Tasks, gather(), and control access with Locks and Semaphores."
+description: "A thorough, practical guide to Python Asyncio — learn coroutines, tasks, the event loop, gather(), and how to safely synchronize with locks and semaphores."
 showToc: true
 weight: 2
 series: ["Asyncio"]
 categories: ["Asyncio", "Python"]
-tags: ["Asyncio", "Coroutines", "Tasks", "Locks", "Semaphores"]
-summary: "Day 2 of Asyncio series. Practical guide to async/await syntax, creating Tasks, handling concurrency with gather, and using Synchronization Primitives."
+tags: ["Asyncio", "Coroutines", "Tasks", "Event Loop", "Locks", "Semaphores", "Concurrency"]
+summary: "Comprehensive tutorial covering Python Asyncio fundamentals: what coroutines are, how the event loop works, creating and scheduling tasks, coordinating concurrent code with gather(), and controlling access to shared resources with locks and semaphores."
 images: ["/images/python.png"]
 ---
+
 
 
 # Chapter 1 — What Is Asynchronous Programming?
@@ -494,9 +495,9 @@ When we create asyncio.run(coro()) it create one task and put it in ready queue,
 
 
 
-# Chapter 7- Lock,Semaphores
+# Chapter 5- Lock,Semaphores
 
-## 3.1 Locks
+## 5.1 Locks
 
 Locks are a synchronization primitive that allows us to limit access to a shared resource to only one coroutine at a time. This is useful when we have a resource that can only be accessed by one coroutine at a time, like a file or a database connection. Locks are created using the asyncio.Lock class and can be acquired using the acquire method and released using the release method.
 
@@ -538,7 +539,7 @@ Released the lock
 In this example, we create a lock using asyncio.Lock and pass it to the locking coroutine. We then use the async with statement to acquire the lock and release it when we are done. When we run the program, we can see that only one coroutine can acquire the lock at a time, and the other coroutines have to wait until the lock is released.
 
 
-## 3.2 Semaphores
+## 5.2 Semaphores
 
 Semaphores are a synchronization primitive that allows us to limit access to a shared resource to a fixed number of coroutines at a time. This is useful when we have a resource that can be accessed by a limited number of coroutines, like a connection pool or a web API. Semaphores are created using the asyncio.Semaphore class and can be acquired using the acquire method and released using the release method.
 
@@ -579,9 +580,9 @@ Released the semaphore
 In this example, we create a semaphore with a limit of 2 using asyncio.Semaphore and pass it to the semaphoring coroutine. We then use the async with statement to acquire the semaphore and release it when we are done. When we run the program, we can see that only two coroutines can acquire the semaphore at a time, and the other coroutines have to wait until the semaphore is released.
 
 
-# Chapter 8 : Context Manager and Aiohttp
+# Chapter 6 : Context Manager and Aiohttp
 
-## 8.1 Context Managers
+## 6.1 Context Managers
 Context managers are a powerful tool in Python that allow us to manage resources and ensure that they are properly cleaned up after use. What it does is that it allows us to define a block of code that will be executed when we enter and exit a context. This is useful for managing resources like files, network connections, and database connections.
 
 Example of Context Manager For Database Connection:
@@ -610,7 +611,7 @@ asyncio.run(main())
 What we are doing here is that we are defining a context manager for a database connection using the async with statement. When we enter the context, we establish a connection to the database and return it using the __aenter__ method. When we exit the context, we close the connection using the __aexit__ method. This ensures that the connection is properly cleaned up after use, even if an exception occurs.
 
 
-# 8.2 Aiohttp
+# 6.2 Aiohttp
 Aiohttp is a popular asynchronous HTTP client and server library for Python. It allows us to make HTTP requests and build web servers using asyncio. Aiohttp provides a simple and intuitive API for making HTTP requests and handling responses, as well as for building web servers that can handle multiple requests concurrently.
 Example of Aiohttp Client:
 ``` python
