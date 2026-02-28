@@ -23,9 +23,12 @@ The **N+1 problem** is a common performance issue that occurs when fetching a li
 - **1 query** for the base list
 - **N queries** for related fields
 
-👉 **Total = N+1 queries**
+ **Total = N+1 queries**
 
 This happens because Django fetches related fields **lazily** by default.
+
+### Using `django-debug-toolbar`
+To identify N+1 problems, install and configure `django-debug-toolbar`. It shows the number of queries executed and their details.
 
 ### Example 1: Forward ForeignKey
 
@@ -49,7 +52,7 @@ SELECT * FROM book;                     -- 1 query
 SELECT * FROM author WHERE id=...;      -- repeated for each book
 ```
 
-If you have 1000 books → **1001 queries**! 😱
+If you have 1000 books → **1001 queries**! 
 
 ### Example 2: Reverse ForeignKey
 
@@ -125,7 +128,7 @@ FROM book
 INNER JOIN author ON book.author_id = author.id;
 ```
 
-👉 **Still 1 query total** even for 1000 books!
+**Still 1 query total** even for 1000 books!
 
 
 ### Multiple select_related Fields
@@ -135,7 +138,7 @@ INNER JOIN author ON book.author_id = author.id;
 Book.objects.select_related("author", "publisher", "editor")
 ```
 
-👉 **Efficient** when all are FK/O2O relationships.
+ **Efficient** when all are FK/O2O relationships.
 
 ## 32. Solving N+1 with prefetch_related
 
@@ -160,7 +163,7 @@ SELECT * FROM author;                      -- 1st query
 SELECT * FROM book WHERE author_id IN (...); -- 2nd query
 ```
 
-👉 **Always 2 queries**, regardless of author count.
+ **Always 2 queries**, regardless of author count.
 
 ### ManyToMany Example
 
@@ -185,23 +188,10 @@ WHERE book_categories.book_id IN (...);                -- 2nd query
 Book.objects.prefetch_related("categories", "tags", "languages")
 ```
 
-👉 **1 base query + 3 prefetch queries = 4 queries total**.
+**1 base query + 3 prefetch queries = 4 queries total**.
 
-## 34. What Happens After Query Execution
 
-### Without Optimization
-- Related objects are **not loaded**
-- Each `.author`, `.book_set.all()`, `.categories.all()` triggers **new SQL**
-
-### With select_related
-- Related objects are **joined at query time**
-- Accessing `.author` does **not trigger new SQL**
-
-### With prefetch_related
-- Django stores a **cache** of related objects
-- First `.book_set.all()` comes from **memory**, not database
-
-## 35. Query Optimization Summary Table
+## 33. Query Optimization Summary Table
 
 | Relation Type | Default (lazy) | With Optimization |
 |---------------|----------------|-------------------|
@@ -209,8 +199,6 @@ Book.objects.prefetch_related("categories", "tags", "languages")
 | O2O | N+1 queries | `select_related` → 1 query |
 | FK (reverse) | N+1 queries | `prefetch_related` → 2 queries |
 | M2M | N+1 queries | `prefetch_related` → 2 queries |
-| Multiple FKs/O2Os | N+1 queries | `select_related` (many JOINs) → 1 query |
-| Multiple M2Ms | N+1 queries | `prefetch_related` (extra per field) |
 
 ### Important Notes
 
@@ -222,18 +210,13 @@ Entry.objects.filter(pub_date__gt=timezone.now()).select_related("blog")
 Entry.objects.select_related("blog").filter(pub_date__gt=timezone.now())
 ```
 
-- **Caching behavior**: Once you use `select_related`, the related objects are cached:
+## Using `prefech_related` and `select_related` together
+You can use both `select_related` and `prefetch_related` in the same query to optimize different relationships:
 
 ```python
-# Hits the database with joins to the author and hometown tables.
-b = Book.objects.select_related("author").get(id=4)
-p = b.author         # Doesn't hit the database.
-
-# Without select_related()...
-b = Book.objects.get(id=4)  # Hits the database.
-p = b.author                # Hits the database.
-
+entries = Entry.objects.select_related("blog").prefetch_related("authors")
 ```
+
 
 
 
@@ -263,4 +246,10 @@ average_scores = Student.objects.values('grade').annotate(avg_score=Avg('marks__
 ```
 This will group the students by their grade and calculate the average score for each grade.
 
+
+```python
+from django.db.models import Count
+customer_countryCount = Customer.objects.values('country').annotate(count=Count('profile__id'))
+```
+This will group the customers by their country and count the number of profiles for each country.
 

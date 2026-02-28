@@ -157,7 +157,7 @@ class Person(models.Model):
     class Meta:
         verbose_name='Person'
         verbose_name_plural='Persons'
-    class __str__(self):
+    def __str__(self):
         return self.name
 ```
 

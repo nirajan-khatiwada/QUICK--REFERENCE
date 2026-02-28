@@ -145,11 +145,6 @@ student = Student.objects.get(name='John')
 student_profile = StudentProfile.objects.get(student=student)
 ```
 
-**Method 3: Using related_name (most efficient)**
-```python
-student = Student.objects.get(name='John')
-student_profile = student.profile
-```
 
 ### Finding Student by Profile Address
 
@@ -164,11 +159,6 @@ student_profile = StudentProfile.objects.get(address='California')
 student = Student.objects.get(profile=student_profile)
 ```
 
-**Method 3: Direct relationship access**
-```python
-student_profile = StudentProfile.objects.get(address='California')
-student = student_profile.student
-```
 
 ### Best Practices
 
@@ -284,28 +274,17 @@ subject = Subject.objects.get(name='Mathematics')
 students = Student.objects.filter(subject=subject)
 ```
 
-**Method 3: Using related_name (reverse relationship)**
-```python
-subject = Subject.objects.get(name='Mathematics')
-students = subject.students.all()
-# Or with filtering
-students = subject.students.filter(age__gte=20)
-```
+
 
 ### Finding Subject by Student Name
 
-**Method 1: Direct access through relationship**
-```python
-student = Student.objects.get(name='John')
-subject = student.subject
-```
 
-**Method 2: Using field lookups**
+**Method 1: Using field lookups**
 ```python
 subject = Subject.objects.get(students__name='John')
 ```
 
-**Method 3: Using select_related for efficiency**
+**Method 2: Using select_related for efficiency**
 ```python
 student = Student.objects.get(name='John')
 subject = Subject.objects.get(students=student)
@@ -519,14 +498,8 @@ students = Student.objects.filter(subjects__name='Mathematics')
 print(f"Students studying Mathematics: {[s.name for s in students]}")
 ```
 
-**Method 2: Using reverse relationship**
-```python
-subject = Subject.objects.get(name='Mathematics')
-students = subject.students.all()
-print(f"Students studying {subject.name}: {[s.name for s in students]}")
-```
 
-**Method 3: With additional filtering**
+**Method 2: With additional filtering**
 ```python
 subject = Subject.objects.get(name='Mathematics')
 young_students = Student.objects.filter(subjects=subject)
@@ -535,20 +508,13 @@ print(f"Young students studying {subject.name}: {[s.name for s in young_students
 
 ### Finding Subjects by Student Name
 
-**Method 1: Direct access**
-```python
-student = Student.objects.get(name='John')
-subjects = student.subjects.all()
-print(f"{student.name} studies: {[s.name for s in subjects]}")
-```
-
-**Method 2: Using field lookups**
+**Method 1: Using field lookups**
 ```python
 subjects = Subject.objects.filter(students__name='John')
 print(f"John's subjects: {[s.name for s in subjects]}")
 ```
 
-**Method 3: Using filter ***
+**Method 2: Using filter ***
 ```python
 student = Student.objects.get(name='John')
 subjects = Subject.objects.filter(students=student)

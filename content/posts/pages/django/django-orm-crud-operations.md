@@ -219,13 +219,7 @@ from myapp.models import Person
 persons = Person.objects.filter(age__lte=25)
 ```
 
-5.not equal to `ne`
-```python
-from myapp.models import Person
-persons = Person.objects.filter(age__ne=25)
-```
-
-6.equal
+5.equal
 ```python
 from myapp.models import Person
 persons = Person.objects.filter(age=25)
@@ -301,6 +295,7 @@ similirly to get query set from 5 to 10 we can use
 ```python
 from myapp.models import Person
 persons = Person.objects.all()[5:10]
+```
 
 
 ## 24. Aggregation
@@ -374,7 +369,7 @@ result = Person.objects.all().aggregate(
     field_name_sum=Sum('field_name'),
     field_name_avg=Avg('field_name'),
     field_name_min=Min('field_name'),
-    field_name_max=Max('field_name')
+    field_name_max=Max('field_name'),
     difference=Max('field_name') - Min('field_name')
 )
 ```
@@ -412,9 +407,10 @@ When we want to compare one field with another field in the same model, we can u
 ```python
 from django.db.models import F
 from myapp.models import Blog
+from datetime import timedelta
 
-# Fetch blogs with more than 5 comments
-blogs = Blog.objects.filter(comment_count__gt=F('comment_count') + 5)
+# Fetch blogs whose time is greater than the time of last edited time plus 5 minutes
+blogs = Blog.objects.filter(created_time__gt=F('last_edited_time') + timedelta(minutes=5))
 ```
 
 ### Comparing Fields
