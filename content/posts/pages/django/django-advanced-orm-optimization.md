@@ -1,4 +1,4 @@
----
+﻿---
 title: "Advanced Django ORM Optimization: N+1 & Query Performance"
 slug: "django-advanced-orm-optimization"
 date: 2025-01-12
@@ -210,7 +210,8 @@ Entry.objects.filter(pub_date__gt=timezone.now()).select_related("blog")
 Entry.objects.select_related("blog").filter(pub_date__gt=timezone.now())
 ```
 
-## Using `prefech_related` and `select_related` together
+## 34. Using `prefetch_related` and `select_related` Together
+
 You can use both `select_related` and `prefetch_related` in the same query to optimize different relationships:
 
 ```python
@@ -253,3 +254,137 @@ customer_countryCount = Customer.objects.values('country').annotate(count=Count(
 ```
 This will group the customers by their country and count the number of profiles for each country.
 
+
+
+## 36. Transactions in Django ORM
+
+Django provides powerful tools to manage database integrity in the presence of concurrent access. Two of the most important concepts are **transactions** and **row-level locking**. Using them correctly prevents race conditions, ensures data consistency, and allows safe concurrent updates.
+
+### Understanding Transactions
+
+A transaction is a logical unit of work treated as a single "all-or-nothing" operation in the database. Django exposes transactions through the `transaction` module.
+
+#### The ACID Principles
+
+Every transaction follows the ACID principles:
+
+- **Atomicity:** All operations succeed, or none do.
+- **Consistency:** Data remains consistent after the transaction.
+- **Isolation:** Concurrent transactions do not interfere with each other.
+- **Durability:** Committed changes persist even if the system crashes.
+
+In Django, you use transactions via `transaction.atomic()`:
+
+```python
+from django.db import transaction
+
+with transaction.atomic():
+    # All operations here form one transaction
+    wallet.balance -= 100
+    wallet.save()
+```
+
+If any line inside the block raises an exception, **all changes are rolled back**.
+
+### The Need for Row-Level Locks
+
+Imagine an e-commerce website where two customers try to purchase the last unit of a product simultaneously. Without proper locking:
+
+```python
+# BAD: No lock — race condition!
+product = Product.objects.get(id=1)
+if product.stock > 0:
+    product.stock -= 1
+    product.save()
+```
+
+Two requests may read `stock = 1` at the same time. Both subtract 1, resulting in `stock = -1`. This is a **race condition**, a classic problem in concurrent systems.
+
+### Django's `select_for_update`
+
+Django provides row-level locking using `select_for_update()`. When combined with `transaction.atomic()`, it ensures that the selected rows are locked until the transaction is complete.
+
+```python
+from django.db import transaction
+
+with transaction.atomic():
+    product = Product.objects.select_for_update().get(id=1)
+    if product.stock <= 0:
+        raise ValueError("Out of stock")
+    product.stock -= 1
+    product.save()
+```
+
+**How it Works:**
+
+1. Transaction begins (`atomic`)
+2. Row is locked (`SELECT ... FOR UPDATE`)
+3. Any other transaction trying to lock the same row **waits** until the first finishes
+4. Transaction commits → lock released
+
+### When to Use `select_for_update`
+
+Use row-level locks when:
+
+- Updating counters (like likes or votes)
+- Managing financial transactions
+- Reserving inventory
+- Booking tickets or seats
+- Scheduling tasks (to prevent double assignments)
+
+### Practical Example: Wallet Transfer
+
+A classic example is transferring money between two users:
+
+```python
+from django.db import transaction
+
+@transaction.atomic
+def transfer(sender_id, receiver_id, amount):
+    sender = Wallet.objects.select_for_update().get(id=sender_id)
+    receiver = Wallet.objects.select_for_update().get(id=receiver_id)
+
+    if sender.balance < amount:
+        raise ValueError("Insufficient balance")
+
+    sender.balance -= amount
+    receiver.balance += amount
+
+    sender.save()
+    receiver.save()
+```
+
+Without `select_for_update`, concurrent transfers could overwrite each other, causing **lost updates**.
+
+### Concurrency Behavior
+
+Consider two concurrent transactions:
+
+```
+T1: Locks row (wallet id=1)
+T2: Tries to lock same row → waits
+T1: Updates & commits → lock released
+T2: Continues → reads updated balance
+```
+
+This ensures data integrity even under heavy concurrent load.
+
+
+## 37. Bulk Create
+Django's `bulk_create()` method allows you to efficiently insert multiple records into the database in a single query. This is much faster than creating and saving each object individually.
+```python
+# Example of bulk_create
+new_books = [
+    Book(title='Book 1', author=author1),
+    Book(title='Book 2', author=author2),
+    Book(title='Book 3', author=author3),
+]
+Book.objects.bulk_create(new_books)
+```
+This will generate a single SQL `INSERT` statement that inserts all three books at once, significantly improving performance compared to multiple individual inserts.
+
+## 38. Bulk Update
+Django's `bulk_update()` method allows you to efficiently update multiple records in the database in a single query. This is much faster than updating each object individually.
+```python
+# Example of bulk_update
+books_to_update = Book.objects.filter(author=author1)
